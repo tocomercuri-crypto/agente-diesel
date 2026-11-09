@@ -314,6 +314,13 @@
           <div><label>Máx</label><input id="ahMax" type="number" step="any"></div>
         </div>
 
+        <div class="row">
+          <div><label for="molaBico">Mola do Bico</label>
+          <input id="molaBico" type="text" placeholder="Nº da mola do bico"></div>
+          <div><label for="molaBobina">Mola da Bobina</label>
+          <input id="molaBobina" type="text" placeholder="Nº da mola da bobina"></div>
+        </div>
+
         <div class="section-label">Atracamento (A)</div>
         <div class="row">
           <div><label>Atrac. Mín</label><input id="atracMin" type="number" step="any"></div>
@@ -381,6 +388,10 @@
           <div><label>Pré-injeção 1</label><input id="apPre" type="text" placeholder="ml/min"></div>
           <div><label>Pré-injeção 2</label><input id="apPre2" type="text" placeholder="ml/min"></div>
         </div>
+        <div class="row">
+          <div><label>Mola do Bico</label><input id="apMolaBico" type="text" placeholder="Nº da mola"></div>
+          <div><label>Mola da Bobina</label><input id="apMolaBobina" type="text" placeholder="Nº da mola"></div>
+        </div>
         <label for="apObs">Observações</label>
         <textarea id="apObs" placeholder="Notas do teste..."></textarea>
 
@@ -421,6 +432,10 @@
       <div class="row">
         <div><label>Indutância (mH)</label><input id="diagInd" type="number" step="any"></div>
         <div><label>Resist. (Ω)</label><input id="diagRes" type="number" step="any"></div>
+      </div>
+      <div class="row">
+        <div><label>Mola do Bico</label><input id="diagMolaBico" type="text"></div>
+        <div><label>Mola da Bobina</label><input id="diagMolaBobina" type="text"></div>
       </div>
     </div>
     <div class="card" id="diagResult" style="display:none">
@@ -512,6 +527,8 @@ async function loadDbData() {
         if (d.ponteira) p.push('  Ponteira: ' + d.ponteira);
         if (d.valvula) p.push('  Válvula: ' + d.valvula);
         if (d.arruela) p.push('  Arruela de assento: ' + d.arruela + ' mm');
+        if (d.molaBico) p.push('  Mola do bico: ' + d.molaBico);
+        if (d.molaBobina) p.push('  Mola da bobina: ' + d.molaBobina);
         if (d.dnh) p.push('  DNH: Mín=' + (d.dnh.min||'?') + ' Ideal=' + (d.dnh.ideal||'?') + ' Máx=' + (d.dnh.max||'?'));
         if (d.rls) p.push('  RLS: Mín=' + (d.rls.min||'?') + ' Ideal=' + (d.rls.ideal||'?') + ' Máx=' + (d.rls.max||'?'));
         if (d.dfk) p.push('  DFK: Mín=' + (d.dfk.min||'?') + ' Ideal=' + (d.dfk.ideal||'?') + ' Máx=' + (d.dfk.max||'?'));
@@ -548,6 +565,8 @@ async function loadDbData() {
         if (d.marchaLenta) p.push('  Marcha Lenta: ' + d.marchaLenta);
         if (d.preInjecao) p.push('  Pré-injeção 1: ' + d.preInjecao);
         if (d.preInjecao2) p.push('  Pré-injeção 2: ' + d.preInjecao2);
+        if (d.molaBico) p.push('  Mola do bico: ' + d.molaBico);
+        if (d.molaBobina) p.push('  Mola da bobina: ' + d.molaBobina);
         if (d.dataAprovacao) p.push('  Data: ' + new Date(d.dataAprovacao).toLocaleDateString('pt-BR'));
         if (d.obs) p.push('  Obs: ' + d.obs);
         return p.join('\n');
@@ -695,6 +714,8 @@ async function buscarInjetor() {
       setVal('ponteira', d.ponteira);
       setVal('valvula', d.valvula);
       setVal('arruela', d.arruela);
+      setVal('molaBico', d.molaBico);
+      setVal('molaBobina', d.molaBobina);
       setVal('obs', d.obs);
       // Verificar campos faltantes
       if (!d.veiculo) missing.push('Veículo');
@@ -820,6 +841,8 @@ async function handleSubmit(e) {
     ponteira: val('ponteira'),
     valvula: val('valvula'),
     arruela: val('arruela'),
+    molaBico: val('molaBico'),
+    molaBobina: val('molaBobina'),
     obs: val('obs'),
     dataRegistro: new Date().toISOString()
   };
@@ -866,6 +889,8 @@ async function loadHistory() {
       if (d.ponteira) det.push('Ponteira: ' + d.ponteira);
       if (d.valvula) det.push('Válvula: ' + d.valvula);
       if (d.arruela) det.push('Arruela: ' + d.arruela + ' mm');
+      if (d.molaBico) det.push('Mola bico: ' + d.molaBico);
+      if (d.molaBobina) det.push('Mola bobina: ' + d.molaBobina);
       if (d.obs) det.push('Obs: ' + d.obs);
       div.innerHTML = '<div class="pn">' + (d.partNumber||doc.id) + '</div>' +
         (det.length ? '<div class="detail">' + det.join('<br>') + '</div>' : '');
@@ -904,6 +929,8 @@ async function handleAprov(e) {
     marchaLenta: apVal('apMarcha'),
     preInjecao: apVal('apPre'),
     preInjecao2: apVal('apPre2'),
+    molaBico: apVal('apMolaBico'),
+    molaBobina: apVal('apMolaBobina'),
     obs: apVal('apObs'),
     dataAprovacao: new Date().toISOString(),
     status: 'aprovado'
@@ -1039,6 +1066,10 @@ async function runDiag() {
         else if (atNums.length>=3) ref.atracamento={min:Math.min(...atNums),ideal:Math.round((atNums.reduce((s,n)=>s+n,0)/atNums.length)*1000)/1000,max:Math.max(...atNums)};
         const indNums = aprs.map(a=>a.indutancia).filter(v=>v!=null&&v!=='').map(Number).filter(n=>!isNaN(n));
         if (indNums.length>0) { ref.indMin=Math.min(...indNums); ref.indMax=Math.max(...indNums); }
+        const mbs = aprs.map(a=>a.molaBico).filter(v=>v!=null&&v!=='');
+        if (mbs.length>0) ref.molaBico = [...new Set(mbs)];
+        const mbbs = aprs.map(a=>a.molaBobina).filter(v=>v!=null&&v!=='');
+        if (mbbs.length>0) ref.molaBobina = [...new Set(mbbs)];
       }
     }
   } catch(e) {}
@@ -1091,6 +1122,20 @@ async function runDiag() {
       '<td style="text-align:center;color:var(--text-sec)">' + (ref.indMax||'—') + '</td>' +
       '<td style="text-align:center;font-weight:700;color:' + cl + '">' + st + '</td></tr>';
   }
+
+  // Molas
+  function checkMola(name, inputId, refList) {
+    const atual = document.getElementById(inputId).value.trim();
+    if (!atual || !refList || refList.length === 0) return '';
+    const ok = refList.some(r => r.toLowerCase() === atual.toLowerCase());
+    const st = ok ? '✓ OK' : '✗ DIFERENTE';
+    const cl = ok ? 'var(--success-fg)' : '#c00';
+    return '<tr><td style="padding:6px;font-weight:600">' + name + '</td><td style="text-align:center">' + atual + '</td>' +
+      '<td colspan="3" style="text-align:center;color:var(--text-sec)">' + refList.join(', ') + '</td>' +
+      '<td style="text-align:center;font-weight:700;color:' + cl + '">' + st + '</td></tr>';
+  }
+  html += checkMola('Mola do Bico', 'diagMolaBico', ref.molaBico);
+  html += checkMola('Mola da Bobina', 'diagMolaBobina', ref.molaBobina);
 
   html += '</table></div>';
   output.innerHTML = html;
