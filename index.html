@@ -22,6 +22,8 @@
     --err-bg: #fee;
     --err-fg: #c00;
     --err-border: #fcc;
+    --success-bg: #e8f5e9;
+    --success-fg: #2e7d32;
     --shadow: 0 2px 8px rgba(0,0,0,0.08);
     --radius: 14px;
     color-scheme: light dark;
@@ -35,6 +37,7 @@
       --user-bg: #2e7d32; --user-fg: #fff;
       --ai-bg: #1c1c1e; --ai-fg: #e8e8e8;
       --err-bg: #2a1010; --err-fg: #f88; --err-border: #522;
+      --success-bg: #1b3a1b; --success-fg: #81c784;
       --shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
   }
@@ -46,6 +49,7 @@
     --user-bg: #2e7d32; --user-fg: #fff;
     --ai-bg: #1c1c1e; --ai-fg: #e8e8e8;
     --err-bg: #2a1010; --err-fg: #f88; --err-border: #522;
+    --success-bg: #1b3a1b; --success-fg: #81c784;
     --shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -61,25 +65,33 @@
   body::before {
     content:""; position:fixed; inset:0 0 auto;
     height: env(safe-area-inset-top, 0px);
-    background:var(--surface); z-index:10;
+    background:var(--primary); z-index:10;
   }
   header {
     position:sticky; top: env(safe-area-inset-top, 0px);
-    background:var(--surface); border-bottom:1px solid var(--border);
+    background:var(--primary); color:#fff;
     padding:14px 20px; display:flex; align-items:center; gap:12px;
     z-index:5; box-shadow:var(--shadow);
   }
-  .logo {
-    width:42px; height:42px; background:var(--primary); border-radius:12px;
-    display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;
-  }
+  .logo { font-size:26px; flex-shrink:0; }
   .hdr h1 { font-size:16px; font-weight:700; }
-  .hdr p { font-size:12px; color:var(--text-muted); }
-  .btn-clear {
-    margin-left:auto; background:var(--surface-alt); border:1px solid var(--border);
-    color:var(--text-sec); font-size:12px; padding:6px 12px; border-radius:8px; cursor:pointer;
+  .hdr p { font-size:12px; opacity:0.85; }
+
+  /* Tabs */
+  .nav-tabs {
+    display:flex; background:var(--surface); border-bottom:1px solid var(--border);
   }
-  .btn-clear:hover { background:var(--border); }
+  .nav-tab {
+    flex:1; padding:12px 8px; text-align:center; font-size:14px; font-weight:600;
+    color:var(--text-muted); background:none; border:none; cursor:pointer;
+    border-bottom:3px solid transparent;
+  }
+  .nav-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+
+  .page { display:none; flex:1; flex-direction:column; overflow:hidden; }
+  .page.active { display:flex; }
+
+  /* Chat */
   #chat {
     flex:1; overflow-y:auto; padding:16px 16px 8px;
     display:flex; flex-direction:column; gap:12px;
@@ -114,7 +126,6 @@
   .welcome .icon { font-size:48px; margin-bottom:12px; }
   .welcome h2 { font-size:18px; color:var(--text); margin-bottom:8px; }
   .welcome p { font-size:14px; line-height:1.5; }
-
   .input-area {
     padding:12px 16px; padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px));
     background:var(--surface); border-top:1px solid var(--border);
@@ -127,175 +138,259 @@
   }
   #inp::placeholder { color:var(--text-muted); }
   #inp:focus { outline:none; border-color:var(--primary); }
-  #btn {
+  #sendBtn {
     width:46px; height:46px; background:var(--primary); border:none; border-radius:12px;
     color:#fff; font-size:20px; cursor:pointer; display:flex; align-items:center;
     justify-content:center; flex-shrink:0; transition:background .15s;
   }
-  #btn:hover { background:var(--primary-light); }
-  #btn:disabled { opacity:.5; cursor:not-allowed; }
+  #sendBtn:hover { background:var(--primary-light); }
+  #sendBtn:disabled { opacity:.5; cursor:not-allowed; }
   .err-msg {
     background:var(--err-bg); color:var(--err-fg); border:1px solid var(--err-border);
     padding:10px 14px; border-radius:10px; font-size:13px;
     align-self:center; max-width:90%; text-align:center;
   }
-  .unavail {
-    text-align:center; padding:60px 24px; color:var(--text-sec); font-size:15px; line-height:1.6;
+
+  /* Form */
+  .form-scroll { flex:1; overflow-y:auto; padding:16px; padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px)); }
+  .card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); padding:20px; box-shadow:var(--shadow);
   }
-  .unavail .icon { font-size:48px; margin-bottom:16px; }
+  .card + .card { margin-top:16px; }
+  .card h2 { font-size:15px; font-weight:700; margin:0 0 16px; color:var(--primary); }
+  label { display:block; font-size:13px; font-weight:600; color:var(--text-sec); margin-bottom:6px; margin-top:14px; }
+  label:first-of-type { margin-top:0; }
+  input[type="text"], input[type="number"], select, textarea {
+    width:100%; padding:12px 14px; font-size:15px;
+    background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:10px; color:var(--text); font-family:inherit; box-sizing:border-box;
+  }
+  input:focus, textarea:focus { outline:none; border-color:var(--primary); }
+  textarea { resize:vertical; min-height:60px; }
+  .row { display:flex; gap:10px; }
+  .row > div { flex:1; min-width:0; }
+  .section-label {
+    font-size:12px; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.05em; color:var(--text-muted); margin-top:20px; margin-bottom:4px;
+  }
+  .btn-submit {
+    width:100%; padding:14px; margin-top:20px;
+    background:var(--primary); color:#fff; border:none;
+    border-radius:var(--radius); font-size:16px; font-weight:700;
+    cursor:pointer; transition:background .15s;
+  }
+  .btn-submit:hover { background:var(--primary-light); }
+  .btn-submit:disabled { opacity:.5; cursor:not-allowed; }
+
+  /* History */
+  .history-item {
+    background:var(--surface-alt); border-radius:10px;
+    padding:12px 14px; margin-top:10px;
+  }
+  .history-item .pn { font-weight:700; font-size:15px; color:var(--primary); }
+  .history-item .detail { font-size:13px; color:var(--text-sec); margin-top:4px; line-height:1.5; }
+  .empty-state { text-align:center; color:var(--text-muted); padding:40px 0; font-size:14px; }
+
+  .toast {
+    position:fixed; bottom:calc(20px + env(safe-area-inset-bottom, 0px));
+    left:50%; transform:translateX(-50%);
+    background:var(--success-bg); color:var(--success-fg);
+    padding:12px 24px; border-radius:10px; font-size:14px; font-weight:600;
+    box-shadow:0 4px 12px rgba(0,0,0,0.15);
+    opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:20; white-space:nowrap;
+  }
+  .toast.show { opacity:1; }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">🔧</div>
+  <span class="logo">🔧</span>
   <div class="hdr">
     <h1>Agente Diesel</h1>
-    <p>Especialista em Bicos Common Rail Bosch</p>
+    <p>Bicos Common Rail Bosch</p>
   </div>
-  <button class="btn-clear" onclick="clearChat()">Limpar</button>
 </header>
 
-<div id="chat">
-  <div class="welcome" id="welcome">
-    <div class="icon">⛽</div>
-    <h2>Olá! Sou seu assistente técnico.</h2>
-    <p>Especializado em regulagem de bicos injetores diesel Common Rail Bosch.<br>
-    Pergunte sobre calibração, diagnósticos, valores de referência, procedimentos de teste e mais.</p>
-  </div>
-  <div class="typing" id="typing"><span></span><span></span><span></span></div>
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="switchPage('chat')">Chat</button>
+  <button class="nav-tab" onclick="switchPage('cadastro')">Cadastrar</button>
+  <button class="nav-tab" onclick="switchPage('lista')">Injetores</button>
 </div>
 
-<div class="input-area">
-  <textarea id="inp" rows="1" placeholder="Pergunte sobre bicos injetores..." onkeydown="hKey(event)" oninput="aResize(this)"></textarea>
-  <button id="btn" onclick="send()">➤</button>
+<!-- CHAT PAGE -->
+<div id="page-chat" class="page active">
+  <div id="chat">
+    <div class="welcome" id="welcome">
+      <div class="icon">⛽</div>
+      <h2>Olá! Sou seu assistente técnico.</h2>
+      <p>Especializado em regulagem de bicos injetores diesel Common Rail Bosch.<br>
+      Pergunte sobre calibração, diagnósticos, valores de referência e mais.</p>
+    </div>
+    <div class="typing" id="typing"><span></span><span></span><span></span></div>
+  </div>
+  <div class="input-area">
+    <textarea id="inp" rows="1" placeholder="Pergunte sobre bicos injetores..." onkeydown="hKey(event)" oninput="aResize(this)"></textarea>
+    <button id="sendBtn" onclick="send()">➤</button>
+  </div>
 </div>
+
+<!-- CADASTRO PAGE -->
+<div id="page-cadastro" class="page">
+  <div class="form-scroll">
+    <div class="card">
+      <h2>Cadastrar Injetor</h2>
+      <form id="frm" onsubmit="return handleSubmit(event)">
+        <label for="pn">Part Number</label>
+        <input id="pn" type="text" placeholder="0 445 110 XXX" required>
+
+        <div class="section-label">Veículo / Aplicação</div>
+        <label for="veiculo">Veículo</label>
+        <input id="veiculo" type="text" placeholder="Ex: Renault Master, S10...">
+        <label for="anos">Anos</label>
+        <input id="anos" type="text" placeholder="Ex: 2005 a 2011">
+
+        <div class="section-label">Parâmetros Elétricos</div>
+        <div class="row">
+          <div><label for="indMin">Indut. Mín (mH)</label><input id="indMin" type="number" step="any" placeholder="190"></div>
+          <div><label for="indMax">Indut. Máx (mH)</label><input id="indMax" type="number" step="any" placeholder="220"></div>
+        </div>
+        <label for="resistencia">Resistência Bobina (Ω)</label>
+        <input id="resistencia" type="text" placeholder="Ex: 0.3 a 0.5">
+
+        <div class="section-label">Calços (Shims)</div>
+        <div class="row">
+          <div><label>DNH Mín</label><input id="dnhMin" type="number" step="any"></div>
+          <div><label>Ideal</label><input id="dnhIdeal" type="number" step="any"></div>
+          <div><label>Máx</label><input id="dnhMax" type="number" step="any"></div>
+        </div>
+        <div class="row">
+          <div><label>RLS Mín</label><input id="rlsMin" type="number" step="any"></div>
+          <div><label>Ideal</label><input id="rlsIdeal" type="number" step="any"></div>
+          <div><label>Máx</label><input id="rlsMax" type="number" step="any"></div>
+        </div>
+        <div class="row">
+          <div><label>DFK Mín</label><input id="dfkMin" type="number" step="any"></div>
+          <div><label>Ideal</label><input id="dfkIdeal" type="number" step="any"></div>
+          <div><label>Máx</label><input id="dfkMax" type="number" step="any"></div>
+        </div>
+        <div class="row">
+          <div><label>MFK Mín</label><input id="mfkMin" type="number" step="any"></div>
+          <div><label>Ideal</label><input id="mfkIdeal" type="number" step="any"></div>
+          <div><label>Máx</label><input id="mfkMax" type="number" step="any"></div>
+        </div>
+        <div class="row">
+          <div><label>AH Mín</label><input id="ahMin" type="number" step="any"></div>
+          <div><label>Ideal</label><input id="ahIdeal" type="number" step="any"></div>
+          <div><label>Máx</label><input id="ahMax" type="number" step="any"></div>
+        </div>
+
+        <div class="section-label">Outros</div>
+        <label for="arruela">Arruela de Assento (mm)</label>
+        <input id="arruela" type="text" placeholder="Ex: 2 ou 3">
+        <label for="obs">Observações</label>
+        <textarea id="obs" placeholder="Informações extras..."></textarea>
+
+        <button type="submit" class="btn-submit" id="btnSubmit">Salvar Injetor</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- LISTA PAGE -->
+<div id="page-lista" class="page">
+  <div class="form-scroll">
+    <div class="card">
+      <h2>Injetores Cadastrados</h2>
+      <div id="historyList"><div class="empty-state">Carregando...</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-const RULES = `Você é o "Agente Diesel", um técnico especialista em bicos injetores diesel Common Rail, com foco em produtos Bosch. Você tem amplo conhecimento prático e teórico sobre:
+const RULES = `Você é o "Agente Diesel", um técnico especialista em bicos injetores diesel Common Rail, com foco em produtos Bosch.
 
-SISTEMAS E COMPONENTES:
-- Sistemas Common Rail Bosch (CRS1, CRS2, CRS3, CRSN2, CRSN3)
-- Famílias de injetores: CRIN1, CRIN2, CRIN3, CRIN3-18, CRIN4 (piezoelétricos)
-- Bicos injetores solenoides e piezoelétricos
-- Bomba de alta pressão CP1, CP3, CP4
-- Rail (tubo distribuidor), sensor de pressão do rail
-- Válvulas reguladoras de pressão (DRV) e dosadora (ZME/PCV)
+PONTOS BÁSICOS DE REGULAGEM:
+1. PLENA CARGA — calço DNH
+2. CARGA PARCIAL — calço RLS
+3. MARCHA LENTA — calço DFK
+4. PRÉ-INJEÇÃO — calço MFK
+5. CALÇO AH (Gap) — regula o gap da esfera, impacta mais a pré-injeção do que o MFK
 
-PONTOS BÁSICOS DE REGULAGEM (os 4 pontos que todo bico Common Rail deve ser testado):
-1. PLENA CARGA — Injeção principal a carga máxima. É o ponto que simula o motor em potência total. Avalia a capacidade máxima de vazão do injetor. O calço responsável pela regulagem da plena carga é o DNH (calço DNH).
-2. CARGA PARCIAL — Injeção em regime intermediário. Simula condições normais de rodagem/uso cotidiano do veículo. O calço responsável pela regulagem da carga parcial é o RLS (calço RLS).
-3. MARCHA LENTA — Injeção em rotação de marcha lenta. Fundamental para estabilidade do motor parado/em baixa rotação. O calço responsável pela regulagem da marcha lenta é o DFK (calço DFK).
-4. PRÉ-INJEÇÃO — Injeção piloto que antecede a principal. Responsável por reduzir ruído de combustão e emissões. Também chamada de injeção piloto. O calço responsável pela regulagem da pré-injeção é o MFK (calço MFK).
-5. CALÇO AH (Gap) — Calço que regula o gap da esfera. Impacta mais a pré-injeção do que o próprio calço MFK. É um calço crítico que deve ser considerado ao ajustar a pré-injeção.
-Quando o usuário perguntar sobre regulagem, SEMPRE considere esses 4 pontos como a base de todo teste. Se perguntarem "quais os pontos de regulagem", liste esses 4. Se perguntarem sobre teste de um bico, mencione que ele deve ser verificado nesses 4 pontos.
-
-SITUAÇÕES PRÁTICAS DE REGULAGEM:
-
-SITUAÇÃO 1 — Bico alto de óleo na Plena Carga (demais pontos OK):
-- O calço responsável é o DNH.
-- Para corrigir, modificar o calço DNH em 50 milésimos.
-- ATENÇÃO: se a ponteira (nozzle) do injetor não estiver com o fluxo correto, não adianta aumentar ou diminuir o calço. Primeiro verificar o fluxo da ponteira antes de mexer no calço.
-
-SITUAÇÃO 2 — Bico sem pré-injeção (valor zero):
-- Verificar se o calço AH (Gap) está correto.
-- Verificar se o calço MFK (pré-injeção) não está muito alto.
-- Verificar a amperagem (atracamento) do injetor.
-- Injetores CRI1 família 110 Bosch (0 445 110 xxx): amperagem de atracamento entre 10A e 15A. Não pode ultrapassar 15A nem ser abaixo de 10A.
-- Para obter boa pré-injeção e boa marcha lenta na família 110, a faixa ideal de trabalho é entre 13,5A e 14,5A.
-- Além da amperagem, verificar também a indutância e a resistência da bobina do injetor.
-
-SITUAÇÃO 3 — Marcha lenta muito baixa, mas calço DFK está correto:
-- Se o calço está correto e a marcha lenta continua baixa, verificar a indutância da bobina.
-- A indutância pode estar muito baixa ou muito alta, causando o problema.
-
-SITUAÇÃO 4 — Carga parcial (RLS) muito baixa / redundância muito alta:
-- Causa: altos níveis de óleo, marcha lenta muito alta e emissões elevadas.
-- Se o calço RLS estiver muito distante (valor alto demais), acontece o inverso: pouca marcha lenta e pouca carga parcial.
-
-PROCEDIMENTOS TÉCNICOS:
-- Testes em bancada (EPS 200, EPS 205, EPS 708, EPS 815, CRI IFT)
-- Teste de estanqueidade / retorno (back leak)
-- Teste de vazão (volume de injeção em mm³ por curso)
-- Teste de spray (padrão de pulverização e atomização)
-- Valores de referência de vazão, pressão e retorno por modelo
-- Códigos IMA / C2I / C3I (códigos de calibração individual do injetor)
-- Desmontagem, limpeza ultrassônica, montagem
-- Torques de aperto específicos por modelo
-- Substituição de componentes internos (nozzle/ponta, válvula solenoide, mola, shims)
-
-DIAGNÓSTICO:
-- Códigos de falha (DTC) relacionados a injetores
-- Diagnóstico por scanner (valores de correção de injeção, quantidades de injeção piloto/principal/pós)
-- Análise de excesso de retorno e suas causas
-- Problemas comuns: marcha lenta instável, fumaça, perda de potência, batida de bico, dificuldade de partida a frio
-- Relação entre sintomas do motor e falhas no injetor
-
-REFERÊNCIAS E PART NUMBERS:
-- Nomenclatura Bosch (0 445 110 xxx, 0 445 120 xxx, etc.)
-- Cross-reference com aplicações por veículo/motor
-- Kits de reparo e componentes de reposição
-
-DADOS DE INJETORES CADASTRADOS:
-
-Injetor 0 445 110 141:
-- Veículo: Renault Master
-- Anos: 2005 a 2011
-- Indutância: 190 a 220 mH
-- Arruela de assento: 3 mm
-- Família: CRI1 família 110
-
-Injetor 0 445 110 231:
-- Veículos: S10, Blazer diesel, caminhão 8-150
-- Indutância: 190 a 220 mH
-- Arruela de assento: 2 mm
-- Família: CRI1 família 110
-
-Injetor 0 445 110 265:
-- Veículo: Renault Master
-- Anos: 2011 a 2012
-- Indutância: 190 a 220 mH
-- Arruela de assento: 3 mm
-- Família: CRI1 família 110
+SITUAÇÕES PRÁTICAS:
+- Bico alto de óleo na Plena Carga → corrigir calço DNH (50 milésimos). Verificar fluxo da ponteira antes.
+- Bico sem pré-injeção → verificar AH (Gap), MFK, e amperagem. CRI1 família 110: 10A-15A, ideal 13,5A-14,5A.
+- Marcha lenta baixa com DFK correto → verificar indutância da bobina.
+- Carga parcial baixa / redundância alta → verificar calço RLS.
 
 REGRAS:
-1. Responda SEMPRE em português brasileiro, de forma clara e técnica.
-2. Quando citar valores (pressão, vazão, torque), especifique unidades (bar, mm³/curso, Nm).
-3. Se não tiver certeza de um valor exato, diga claramente e sugira consultar o manual técnico ou catálogo Bosch.
-4. Sempre priorize a SEGURANÇA — alerte sobre pressões perigosas (Common Rail trabalha com 200 a 2500 bar).
-5. Seja DIRETO — responda apenas o que foi perguntado, sem adicionar dicas práticas, sugestões extras ou conselhos não solicitados no final.
-6. Se a pergunta não for sobre bicos/injetores diesel, diga educadamente que sua especialidade é essa área.
-7. Use formatação simples para organizar a resposta quando necessário.
-8. NÃO adicione seções tipo "dicas", "na prática", "como trabalhar na bancada" ou qualquer complemento que o usuário não pediu.`;
+1. Responda SEMPRE em português brasileiro.
+2. Especifique unidades (bar, mm³/curso, Nm, mH, Ω).
+3. Se não tiver certeza, diga claramente.
+4. Priorize SEGURANÇA (Common Rail: 200 a 2500 bar).
+5. Seja DIRETO — sem dicas ou complementos não solicitados.
+6. SEMPRE consulte os DADOS DO BANCO abaixo antes de responder sobre um injetor específico.
+7. Se o injetor perguntado não estiver no banco, diga que não tem dados cadastrados para ele.`;
 
 let sample = null;
+let db = null;
+let dbData = '';
 let turns = [];
 let busy = false;
 
 async function init() {
-  if (typeof window.claude === 'undefined') {
-    showUnavail(); return;
-  }
+  if (typeof window.claude === 'undefined') return;
+  try { sample = await claude.use("sample"); } catch(e) {}
+  try { db = await claude.use("db"); } catch(e) {}
+  await loadDbData();
+}
+
+async function loadDbData() {
+  if (!db) return;
   try {
-    sample = await claude.use("sample");
-  } catch(e) { /* null */ }
-  if (!sample) showUnavail();
+    const snap = await db.collection("injetores").list({ limit: 200 });
+    if (snap.docs && snap.docs.length > 0) {
+      const lines = snap.docs.map(doc => {
+        const d = doc.data;
+        let p = ['Injetor ' + (d.partNumber || doc.id) + ':'];
+        if (d.veiculo) p.push('  Veículo: ' + d.veiculo);
+        if (d.anos) p.push('  Anos: ' + d.anos);
+        if (d.indMin || d.indMax) p.push('  Indutância: ' + (d.indMin||'?') + ' a ' + (d.indMax||'?') + ' mH');
+        if (d.resistencia) p.push('  Resistência bobina: ' + d.resistencia + ' Ω');
+        if (d.arruela) p.push('  Arruela de assento: ' + d.arruela + ' mm');
+        if (d.dnh) p.push('  DNH: Mín=' + (d.dnh.min||'?') + ' Ideal=' + (d.dnh.ideal||'?') + ' Máx=' + (d.dnh.max||'?'));
+        if (d.rls) p.push('  RLS: Mín=' + (d.rls.min||'?') + ' Ideal=' + (d.rls.ideal||'?') + ' Máx=' + (d.rls.max||'?'));
+        if (d.dfk) p.push('  DFK: Mín=' + (d.dfk.min||'?') + ' Ideal=' + (d.dfk.ideal||'?') + ' Máx=' + (d.dfk.max||'?'));
+        if (d.mfk) p.push('  MFK: Mín=' + (d.mfk.min||'?') + ' Ideal=' + (d.mfk.ideal||'?') + ' Máx=' + (d.mfk.max||'?'));
+        if (d.ah) p.push('  AH/Gap: Mín=' + (d.ah.min||'?') + ' Ideal=' + (d.ah.ideal||'?') + ' Máx=' + (d.ah.max||'?'));
+        if (d.obs) p.push('  Obs: ' + d.obs);
+        return p.join('\n');
+      });
+      dbData = '\n\nDADOS DO BANCO DE INJETORES CADASTRADOS:\n\n' + lines.join('\n\n');
+    }
+  } catch(e) {}
 }
 
-function showUnavail() {
-  const w = document.getElementById('welcome');
-  if (w) w.innerHTML = '<div class="icon">⚠️</div><h2>Recurso indisponível</h2><p>Este agente precisa ser aberto dentro do Claude para funcionar.<br>Abra o link pelo claude.ai.</p>';
-  document.querySelector('.input-area').style.display = 'none';
+function switchPage(name) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.nav-tab[onclick*="${name}"]`).classList.add('active');
+  document.getElementById('page-' + name).classList.add('active');
+  if (name === 'lista') loadHistory();
 }
 
-function aResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-function hKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
-}
+function aResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
+function hKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
 
 function fmt(text) {
   return text
@@ -328,21 +423,6 @@ function showErr(msg) {
   chat.scrollTop = chat.scrollHeight;
 }
 
-function clearChat() {
-  turns = [];
-  const chat = document.getElementById('chat');
-  chat.querySelectorAll('.msg,.err-msg').forEach(el => el.remove());
-  const typ = document.getElementById('typing');
-  const w = document.createElement('div');
-  w.className = 'welcome'; w.id = 'welcome';
-  w.innerHTML = `<div class="icon">⛽</div>
-    <h2>Olá! Sou seu assistente técnico.</h2>
-    <p>Especializado em regulagem de bicos injetores diesel Common Rail Bosch.<br>
-    Pergunte sobre calibração, diagnósticos, valores de referência, procedimentos de teste e mais.</p>
-`;
-  chat.insertBefore(w, typ);
-}
-
 async function send() {
   if (busy || !sample) return;
   const inp = document.getElementById('inp');
@@ -354,19 +434,17 @@ async function send() {
   turns.push({ role: 'user', content: text });
 
   busy = true;
-  document.getElementById('btn').disabled = true;
+  document.getElementById('sendBtn').disabled = true;
   document.getElementById('typing').classList.add('on');
 
   const bubble = addMsg('ai', '');
   bubble.style.display = 'none';
 
-  const ctl = new AbortController();
-
   try {
-    const msgs = [{ role: 'user', content: RULES }, ...turns.slice(-20)];
+    await loadDbData();
+    const msgs = [{ role: 'user', content: RULES + dbData }, ...turns.slice(-20)];
     const { text: reply } = await sample(msgs, {
       cache: false,
-      signal: ctl.signal,
       onText: ({ text }) => {
         document.getElementById('typing').classList.remove('on');
         bubble.style.display = '';
@@ -385,18 +463,93 @@ async function send() {
       bubble.remove();
       turns.pop();
       const errMap = {
-        not_granted: 'Permissão negada. Reabra a página e permita o uso do Claude.',
-        rate_limited: 'Muitas perguntas seguidas. Aguarde um momento e tente de novo.',
-        session_expired: 'Sessão expirada. Faça login novamente no Claude.',
-        refused: 'O Claude não pôde responder a essa pergunta. Tente reformular.',
+        not_granted: 'Permissão negada. Reabra a página e permita o uso.',
+        rate_limited: 'Muitas perguntas seguidas. Aguarde um momento.',
+        session_expired: 'Sessão expirada. Faça login novamente.',
+        refused: 'Não foi possível responder. Tente reformular.',
       };
       showErr(errMap[e.code] || 'Erro ao conectar. Tente novamente.');
     }
   } finally {
     busy = false;
-    document.getElementById('btn').disabled = false;
+    document.getElementById('sendBtn').disabled = false;
     document.getElementById('typing').classList.remove('on');
-    document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
+  }
+}
+
+function val(id) { const v = document.getElementById(id).value.trim(); return v || null; }
+function numVal(id) { const v = document.getElementById(id).value; return v ? parseFloat(v) : null; }
+
+async function handleSubmit(e) {
+  e.preventDefault();
+  if (!db) { toast('Banco não disponível — abra pelo claude.ai'); return; }
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+
+  const pn = val('pn');
+  const data = {
+    partNumber: pn,
+    veiculo: val('veiculo'),
+    anos: val('anos'),
+    indMin: numVal('indMin'),
+    indMax: numVal('indMax'),
+    resistencia: val('resistencia'),
+    dnh: { min: numVal('dnhMin'), ideal: numVal('dnhIdeal'), max: numVal('dnhMax') },
+    rls: { min: numVal('rlsMin'), ideal: numVal('rlsIdeal'), max: numVal('rlsMax') },
+    dfk: { min: numVal('dfkMin'), ideal: numVal('dfkIdeal'), max: numVal('dfkMax') },
+    mfk: { min: numVal('mfkMin'), ideal: numVal('mfkIdeal'), max: numVal('mfkMax') },
+    ah:  { min: numVal('ahMin'),  ideal: numVal('ahIdeal'),  max: numVal('ahMax') },
+    arruela: val('arruela'),
+    obs: val('obs'),
+    dataRegistro: new Date().toISOString()
+  };
+  Object.keys(data).forEach(k => {
+    if (data[k] === null) delete data[k];
+    if (typeof data[k] === 'object' && data[k] !== null && !Array.isArray(data[k])) {
+      const s = data[k];
+      if (s.min === null && s.ideal === null && s.max === null) delete data[k];
+    }
+  });
+
+  try {
+    const docId = pn.replace(/[\s\.]/g, '_');
+    await db.collection("injetores").doc(docId).set(data);
+    toast('✓ Injetor ' + pn + ' salvo!');
+    document.getElementById('frm').reset();
+    await loadDbData();
+  } catch(err) {
+    toast('Erro: ' + (err.message || err.code || 'desconhecido'));
+  }
+  btn.disabled = false; btn.textContent = 'Salvar Injetor';
+}
+
+async function loadHistory() {
+  if (!db) return;
+  const list = document.getElementById('historyList');
+  try {
+    const snap = await db.collection("injetores").list({ limit: 100 });
+    if (!snap.docs || snap.docs.length === 0) {
+      list.innerHTML = '<div class="empty-state">Nenhum injetor cadastrado.</div>';
+      return;
+    }
+    list.innerHTML = '';
+    snap.docs.forEach(doc => {
+      const d = doc.data;
+      const div = document.createElement('div');
+      div.className = 'history-item';
+      let det = [];
+      if (d.veiculo) det.push('Veículo: ' + d.veiculo);
+      if (d.anos) det.push('Anos: ' + d.anos);
+      if (d.indMin || d.indMax) det.push('Indutância: ' + (d.indMin||'?') + '–' + (d.indMax||'?') + ' mH');
+      if (d.resistencia) det.push('Resist. bobina: ' + d.resistencia + ' Ω');
+      if (d.arruela) det.push('Arruela: ' + d.arruela + ' mm');
+      if (d.obs) det.push('Obs: ' + d.obs);
+      div.innerHTML = '<div class="pn">' + (d.partNumber||doc.id) + '</div>' +
+        (det.length ? '<div class="detail">' + det.join('<br>') + '</div>' : '');
+      list.appendChild(div);
+    });
+  } catch(e) {
+    list.innerHTML = '<div class="empty-state">Erro ao carregar.</div>';
   }
 }
 
