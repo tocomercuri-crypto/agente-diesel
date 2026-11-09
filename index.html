@@ -217,6 +217,7 @@
   <button class="nav-tab active" onclick="switchPage('chat')">Chat</button>
   <button class="nav-tab" onclick="switchPage('cadastro')">Cadastrar</button>
   <button class="nav-tab" onclick="switchPage('lista')">Injetores</button>
+  <button class="nav-tab" onclick="switchPage('aprovados')">Aprovados</button>
 </div>
 
 <!-- CHAT PAGE -->
@@ -286,6 +287,13 @@
           <div><label>Máx</label><input id="ahMax" type="number" step="any"></div>
         </div>
 
+        <div class="section-label">Atracamento (Nm)</div>
+        <div class="row">
+          <div><label>Atrac. Mín</label><input id="atracMin" type="number" step="any"></div>
+          <div><label>Ideal</label><input id="atracIdeal" type="number" step="any"></div>
+          <div><label>Máx</label><input id="atracMax" type="number" step="any"></div>
+        </div>
+
         <div class="section-label">Outros</div>
         <label for="arruela">Arruela de Assento (mm)</label>
         <input id="arruela" type="text" placeholder="Ex: 2 ou 3">
@@ -294,6 +302,63 @@
 
         <button type="submit" class="btn-submit" id="btnSubmit">Salvar Injetor</button>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- APROVADOS PAGE -->
+<div id="page-aprovados" class="page">
+  <div class="form-scroll">
+    <div class="card">
+      <h2>Registrar Injetor Aprovado</h2>
+      <form id="frmAprov" onsubmit="return handleAprov(event)">
+        <label for="apPn">Part Number</label>
+        <input id="apPn" type="text" placeholder="0 445 110 XXX" required>
+        <label for="apSerie">Nº de Série</label>
+        <input id="apSerie" type="text" placeholder="Série do injetor">
+        <label for="apCliente">Cliente</label>
+        <input id="apCliente" type="text" placeholder="Nome do cliente">
+        <label for="apVeiculo">Veículo</label>
+        <input id="apVeiculo" type="text" placeholder="Ex: Renault Master">
+
+        <div class="section-label">Valores Medidos</div>
+        <div class="row">
+          <div><label>Indutância (mH)</label><input id="apInd" type="number" step="any"></div>
+          <div><label>Resist. (Ω)</label><input id="apRes" type="number" step="any"></div>
+        </div>
+        <div class="row">
+          <div><label>DNH</label><input id="apDnh" type="number" step="any"></div>
+          <div><label>RLS</label><input id="apRls" type="number" step="any"></div>
+          <div><label>DFK</label><input id="apDfk" type="number" step="any"></div>
+        </div>
+        <div class="row">
+          <div><label>MFK</label><input id="apMfk" type="number" step="any"></div>
+          <div><label>AH/Gap</label><input id="apAh" type="number" step="any"></div>
+          <div><label>Atrac. (Nm)</label><input id="apAtrac" type="number" step="any"></div>
+        </div>
+
+        <div class="section-label">Resultado</div>
+        <div class="row">
+          <div><label>Plena Carga</label><input id="apPlena" type="text" placeholder="ml/min"></div>
+          <div><label>Retorno</label><input id="apRetorno" type="text" placeholder="ml/min"></div>
+        </div>
+        <div class="row">
+          <div><label>Carga Parcial</label><input id="apParcial" type="text" placeholder="ml/min"></div>
+          <div><label>Marcha Lenta</label><input id="apMarcha" type="text" placeholder="ml/min"></div>
+        </div>
+        <div class="row">
+          <div><label>Pré-injeção 1</label><input id="apPre" type="text" placeholder="ml/min"></div>
+          <div><label>Pré-injeção 2</label><input id="apPre2" type="text" placeholder="ml/min"></div>
+        </div>
+        <label for="apObs">Observações</label>
+        <textarea id="apObs" placeholder="Notas do teste..."></textarea>
+
+        <button type="submit" class="btn-submit" id="btnAprov">Salvar Aprovado</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Histórico de Aprovados</h2>
+      <div id="aprovList"><div class="empty-state">Carregando...</div></div>
     </div>
   </div>
 </div>
@@ -341,20 +406,37 @@ let dbData = '';
 let turns = [];
 let busy = false;
 
+async function waitForClaude() {
+  for (let i = 0; i < 50; i++) {
+    if (typeof window.claude !== 'undefined') return true;
+    await new Promise(r => setTimeout(r, 200));
+  }
+  return false;
+}
+
 async function init() {
-  if (typeof window.claude === 'undefined') return;
+  const ok = await waitForClaude();
+  if (!ok) {
+    document.getElementById('historyList').innerHTML = '<div class="empty-state">Abra pelo claude.ai para carregar dados.</div>';
+    return;
+  }
   try { sample = await claude.use("sample"); } catch(e) {}
   try { db = await claude.use("db"); } catch(e) {}
+  if (!db) {
+    document.getElementById('historyList').innerHTML = '<div class="empty-state">Banco de dados não disponível.</div>';
+    return;
+  }
   await loadDbData();
+  await loadHistory();
 }
 
 async function loadDbData() {
   if (!db) return;
   try {
-    const snap = await db.collection("injetores").list({ limit: 200 });
+    const snap = await db.collection("injetores").limit(200).get();
     if (snap.docs && snap.docs.length > 0) {
       const lines = snap.docs.map(doc => {
-        const d = doc.data;
+        const d = doc.data();
         let p = ['Injetor ' + (d.partNumber || doc.id) + ':'];
         if (d.veiculo) p.push('  Veículo: ' + d.veiculo);
         if (d.anos) p.push('  Anos: ' + d.anos);
@@ -366,10 +448,42 @@ async function loadDbData() {
         if (d.dfk) p.push('  DFK: Mín=' + (d.dfk.min||'?') + ' Ideal=' + (d.dfk.ideal||'?') + ' Máx=' + (d.dfk.max||'?'));
         if (d.mfk) p.push('  MFK: Mín=' + (d.mfk.min||'?') + ' Ideal=' + (d.mfk.ideal||'?') + ' Máx=' + (d.mfk.max||'?'));
         if (d.ah) p.push('  AH/Gap: Mín=' + (d.ah.min||'?') + ' Ideal=' + (d.ah.ideal||'?') + ' Máx=' + (d.ah.max||'?'));
+        if (d.atracamento) p.push('  Atracamento: Mín=' + (d.atracamento.min||'?') + ' Ideal=' + (d.atracamento.ideal||'?') + ' Máx=' + (d.atracamento.max||'?') + ' Nm');
         if (d.obs) p.push('  Obs: ' + d.obs);
         return p.join('\n');
       });
       dbData = '\n\nDADOS DO BANCO DE INJETORES CADASTRADOS:\n\n' + lines.join('\n\n');
+    }
+  } catch(e) {}
+  // Carregar aprovados no contexto do agente
+  try {
+    const snapA = await db.collection('aprovados').limit(100).get();
+    if (snapA.docs && snapA.docs.length > 0) {
+      const aLines = snapA.docs.map(doc => {
+        const d = doc.data();
+        let p = ['Aprovado: ' + (d.partNumber || '?')];
+        if (d.serie) p.push('  Série: ' + d.serie);
+        if (d.cliente) p.push('  Cliente: ' + d.cliente);
+        if (d.veiculo) p.push('  Veículo: ' + d.veiculo);
+        if (d.indutancia) p.push('  Indutância medida: ' + d.indutancia + ' mH');
+        if (d.resistencia) p.push('  Resistência medida: ' + d.resistencia + ' Ω');
+        if (d.dnh) p.push('  DNH medido: ' + d.dnh);
+        if (d.rls) p.push('  RLS medido: ' + d.rls);
+        if (d.dfk) p.push('  DFK medido: ' + d.dfk);
+        if (d.mfk) p.push('  MFK medido: ' + d.mfk);
+        if (d.ah) p.push('  AH medido: ' + d.ah);
+        if (d.atracamento) p.push('  Atracamento: ' + d.atracamento + ' Nm');
+        if (d.plenaCarga) p.push('  Plena Carga: ' + d.plenaCarga);
+        if (d.retorno) p.push('  Retorno: ' + d.retorno);
+        if (d.cargaParcial) p.push('  Carga Parcial: ' + d.cargaParcial);
+        if (d.marchaLenta) p.push('  Marcha Lenta: ' + d.marchaLenta);
+        if (d.preInjecao) p.push('  Pré-injeção 1: ' + d.preInjecao);
+        if (d.preInjecao2) p.push('  Pré-injeção 2: ' + d.preInjecao2);
+        if (d.dataAprovacao) p.push('  Data: ' + new Date(d.dataAprovacao).toLocaleDateString('pt-BR'));
+        if (d.obs) p.push('  Obs: ' + d.obs);
+        return p.join('\n');
+      });
+      dbData += '\n\nINJETORES APROVADOS (TESTADOS):\n\n' + aLines.join('\n\n');
     }
   } catch(e) {}
 }
@@ -380,6 +494,7 @@ function switchPage(name) {
   document.querySelector(`.nav-tab[onclick*="${name}"]`).classList.add('active');
   document.getElementById('page-' + name).classList.add('active');
   if (name === 'lista') loadHistory();
+  if (name === 'aprovados') loadAprovados();
 }
 
 function toast(msg) {
@@ -499,6 +614,7 @@ async function handleSubmit(e) {
     dfk: { min: numVal('dfkMin'), ideal: numVal('dfkIdeal'), max: numVal('dfkMax') },
     mfk: { min: numVal('mfkMin'), ideal: numVal('mfkIdeal'), max: numVal('mfkMax') },
     ah:  { min: numVal('ahMin'),  ideal: numVal('ahIdeal'),  max: numVal('ahMax') },
+    atracamento: { min: numVal('atracMin'), ideal: numVal('atracIdeal'), max: numVal('atracMax') },
     arruela: val('arruela'),
     obs: val('obs'),
     dataRegistro: new Date().toISOString()
@@ -527,14 +643,14 @@ async function loadHistory() {
   if (!db) return;
   const list = document.getElementById('historyList');
   try {
-    const snap = await db.collection("injetores").list({ limit: 100 });
+    const snap = await db.collection("injetores").limit(100).get();
     if (!snap.docs || snap.docs.length === 0) {
       list.innerHTML = '<div class="empty-state">Nenhum injetor cadastrado.</div>';
       return;
     }
     list.innerHTML = '';
     snap.docs.forEach(doc => {
-      const d = doc.data;
+      const d = doc.data();
       const div = document.createElement('div');
       div.className = 'history-item';
       let det = [];
@@ -542,6 +658,7 @@ async function loadHistory() {
       if (d.anos) det.push('Anos: ' + d.anos);
       if (d.indMin || d.indMax) det.push('Indutância: ' + (d.indMin||'?') + '–' + (d.indMax||'?') + ' mH');
       if (d.resistencia) det.push('Resist. bobina: ' + d.resistencia + ' Ω');
+      if (d.atracamento) det.push('Atracamento: ' + (d.atracamento.min||'?') + '–' + (d.atracamento.ideal||'?') + '–' + (d.atracamento.max||'?') + ' Nm');
       if (d.arruela) det.push('Arruela: ' + d.arruela + ' mm');
       if (d.obs) det.push('Obs: ' + d.obs);
       div.innerHTML = '<div class="pn">' + (d.partNumber||doc.id) + '</div>' +
@@ -549,7 +666,135 @@ async function loadHistory() {
       list.appendChild(div);
     });
   } catch(e) {
-    list.innerHTML = '<div class="empty-state">Erro ao carregar.</div>';
+    list.innerHTML = '<div class="empty-state">Erro ao carregar: ' + (e.message||e.code||'desconhecido') + '</div>';
+  }
+}
+
+function apVal(id) { const v = document.getElementById(id).value.trim(); return v || null; }
+function apNum(id) { const v = document.getElementById(id).value; return v ? parseFloat(v) : null; }
+
+async function handleAprov(e) {
+  e.preventDefault();
+  if (!db) { toast('Banco não disponível'); return; }
+  const btn = document.getElementById('btnAprov');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+
+  const data = {
+    partNumber: apVal('apPn'),
+    serie: apVal('apSerie'),
+    cliente: apVal('apCliente'),
+    veiculo: apVal('apVeiculo'),
+    indutancia: apNum('apInd'),
+    resistencia: apNum('apRes'),
+    dnh: apNum('apDnh'),
+    rls: apNum('apRls'),
+    dfk: apNum('apDfk'),
+    mfk: apNum('apMfk'),
+    ah: apNum('apAh'),
+    atracamento: apNum('apAtrac'),
+    plenaCarga: apVal('apPlena'),
+    retorno: apVal('apRetorno'),
+    cargaParcial: apVal('apParcial'),
+    marchaLenta: apVal('apMarcha'),
+    preInjecao: apVal('apPre'),
+    preInjecao2: apVal('apPre2'),
+    obs: apVal('apObs'),
+    dataAprovacao: new Date().toISOString(),
+    status: 'aprovado'
+  };
+  Object.keys(data).forEach(k => { if (data[k] === null) delete data[k]; });
+
+  try {
+    await db.collection("aprovados").add(data);
+    toast('✓ Salvo no banco! Enviando para planilha...');
+    document.getElementById('frmAprov').reset();
+    await loadAprovados();
+    // Enviar para Google Sheets
+    try {
+      const mcpNs = await claude.use('mcp');
+      if (mcpNs) {
+        const hoje = new Date().toLocaleDateString('pt-BR');
+        const row = [
+          hoje,
+          data.serie || '',
+          data.partNumber || '',
+          data.veiculo || '',
+          '', data.dnh || '', '',
+          '', data.rls || '', '',
+          '', data.dfk || '', '',
+          '', data.mfk || '', '',
+          '', data.ah || '', '',
+          data.indutancia || '',
+          data.resistencia || '',
+          data.atracamento || '',
+          '',
+          'Aprovado',
+          data.obs || ''
+        ];
+        await mcpNs.callTool('Google Sheets', 'append_values', {
+          spreadsheetId: '1igixggBXwkQ3iHp6UzgPLwpxasgloe2qjGvvWloM9N0',
+          range: "'Registro Diário'!A1",
+          values: [row]
+        });
+        toast('✓ Enviado para planilha!');
+      } else {
+        toast('⚠ Salvo no banco, mas sem acesso à planilha.');
+      }
+    } catch(sheetErr) {
+      console.error('Sheets error:', sheetErr);
+      toast('⚠ Salvo no banco. Erro ao enviar para planilha.');
+    }
+  } catch(err) {
+    toast('Erro: ' + (err.message || err.code || 'desconhecido'));
+  }
+  btn.disabled = false; btn.textContent = 'Salvar Aprovado';
+}
+
+async function deleteAprov(docId) {
+  if (!confirm('Tem certeza que deseja apagar este injetor aprovado?')) return;
+  try {
+    await db.collection('aprovados').doc(docId).delete();
+    toast('Injetor removido.');
+    await loadAprovados();
+  } catch(err) {
+    toast('Erro ao apagar: ' + (err.message || err.code || ''));
+  }
+}
+
+async function loadAprovados() {
+  if (!db) return;
+  const list = document.getElementById('aprovList');
+  try {
+    const snap = await db.collection("aprovados").limit(100).get();
+    if (!snap.docs || snap.docs.length === 0) {
+      list.innerHTML = '<div class="empty-state">Nenhum injetor aprovado.</div>';
+      return;
+    }
+    list.innerHTML = '';
+    snap.docs.forEach(doc => {
+      const d = doc.data();
+      const div = document.createElement('div');
+      div.className = 'history-item';
+      let det = [];
+      if (d.serie) det.push('Série: ' + d.serie);
+      if (d.cliente) det.push('Cliente: ' + d.cliente);
+      if (d.veiculo) det.push('Veículo: ' + d.veiculo);
+      if (d.indutancia) det.push('Indut: ' + d.indutancia + ' mH');
+      if (d.resistencia) det.push('Resist: ' + d.resistencia + ' Ω');
+      const calcos = [d.dnh&&'DNH:'+d.dnh, d.rls&&'RLS:'+d.rls, d.dfk&&'DFK:'+d.dfk, d.mfk&&'MFK:'+d.mfk, d.ah&&'AH:'+d.ah].filter(Boolean);
+      if (calcos.length) det.push('Calços: ' + calcos.join(' | '));
+      if (d.atracamento) det.push('Atrac: ' + d.atracamento + ' Nm');
+      const res = [d.plenaCarga&&'Plena:'+d.plenaCarga, d.retorno&&'Ret:'+d.retorno, d.cargaParcial&&'Parcial:'+d.cargaParcial, d.marchaLenta&&'ML:'+d.marchaLenta, d.preInjecao&&'Pré1:'+d.preInjecao, d.preInjecao2&&'Pré2:'+d.preInjecao2].filter(Boolean);
+      if (res.length) det.push(res.join(' | '));
+      const dt = d.dataAprovacao ? new Date(d.dataAprovacao).toLocaleDateString('pt-BR') : '';
+      const docId = doc.id;
+      div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:start"><div class="pn">' + (d.partNumber||'?') + (dt ? ' — ' + dt : '') + '</div>' +
+        '<button onclick="deleteAprov(\'' + docId + '\')" style="background:#c00;color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;white-space:nowrap">Apagar</button></div>' +
+        (det.length ? '<div class="detail">' + det.join('<br>') + '</div>' : '');
+      list.appendChild(div);
+    });
+  } catch(e) {
+    list.innerHTML = '<div class="empty-state">Erro: ' + (e.message||e.code||'') + '</div>';
   }
 }
 
