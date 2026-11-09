@@ -218,6 +218,7 @@
   <button class="nav-tab" onclick="switchPage('cadastro')">Cadastrar</button>
   <button class="nav-tab" onclick="switchPage('lista')">Injetores</button>
   <button class="nav-tab" onclick="switchPage('aprovados')">Aprovados</button>
+  <button class="nav-tab" onclick="switchPage('diagnostico')">Diagnóstico</button>
 </div>
 
 <!-- CHAT PAGE -->
@@ -389,6 +390,42 @@
     <div class="card">
       <h2>Histórico de Aprovados</h2>
       <div id="aprovList"><div class="empty-state">Carregando...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- DIAGNOSTICO PAGE -->
+<div id="page-diagnostico" class="page">
+  <div class="form-scroll">
+    <div class="card">
+      <h2>🔍 Diagnóstico de Calços</h2>
+      <p style="color:var(--text-sec);font-size:13px;margin-bottom:12px">Digite o Part Number e os calços atuais do injetor para verificar se estão dentro dos valores de referência.</p>
+      <label for="diagPn">Part Number</label>
+      <div style="display:flex;gap:8px">
+        <input id="diagPn" type="text" placeholder="0 445 110 XXX" style="flex:1">
+        <button type="button" onclick="runDiag()" style="background:var(--primary);color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:14px;cursor:pointer">Verificar</button>
+      </div>
+      <div class="section-label" style="margin-top:16px">Calços Atuais do Injetor</div>
+      <div class="row">
+        <div><label>DNH</label><input id="diagDnh" type="number" step="any"></div>
+        <div><label>RLS</label><input id="diagRls" type="number" step="any"></div>
+      </div>
+      <div class="row">
+        <div><label>DFK</label><input id="diagDfk" type="number" step="any"></div>
+        <div><label>MFK</label><input id="diagMfk" type="number" step="any"></div>
+      </div>
+      <div class="row">
+        <div><label>AH (Gap)</label><input id="diagAh" type="number" step="any"></div>
+        <div><label>Atrac. (A)</label><input id="diagAtrac" type="number" step="any"></div>
+      </div>
+      <div class="row">
+        <div><label>Indutância (mH)</label><input id="diagInd" type="number" step="any"></div>
+        <div><label>Resist. (Ω)</label><input id="diagRes" type="number" step="any"></div>
+      </div>
+    </div>
+    <div class="card" id="diagResult" style="display:none">
+      <h2>Resultado</h2>
+      <div id="diagOutput"></div>
     </div>
   </div>
 </div>
@@ -625,7 +662,7 @@ async function send() {
 }
 
 function val(id) { const v = document.getElementById(id).value.trim(); return v || null; }
-function numVal(id) { const v = document.getElementById(id).value; return v ? parseFloat(v) : null; }
+function numVal(id) { const v = document.getElementById(id).value.replace(',','.'); return v ? parseFloat(v) : null; }
 
 function setVal(id, v) { if (v !== null && v !== undefined && v !== '') document.getElementById(id).value = v; }
 
@@ -710,10 +747,16 @@ async function buscarInjetor() {
             return;
           }
           if (nums.length === 1) {
-            // 1 teste: valor vai como ideal
+            // 1 teste: valor é o ideal
             if (!numVal(c.ids[1])) setVal(c.ids[1], nums[0]);
+          } else if (nums.length === 2) {
+            // 2 testes: menor = mín, maior = máx, ideal fica vazio
+            const mn = Math.min(...nums);
+            const mx = Math.max(...nums);
+            if (!numVal(c.ids[0])) setVal(c.ids[0], mn);
+            if (!numVal(c.ids[2])) setVal(c.ids[2], mx);
           } else {
-            // 2+ testes: menor = mín, maior = máx, média = ideal
+            // 3+ testes: menor = mín, maior = máx, média = ideal
             const mn = Math.min(...nums);
             const mx = Math.max(...nums);
             const avg = Math.round((nums.reduce((s,n)=>s+n,0) / nums.length) * 1000) / 1000;
@@ -834,7 +877,7 @@ async function loadHistory() {
 }
 
 function apVal(id) { const v = document.getElementById(id).value.trim(); return v || null; }
-function apNum(id) { const v = document.getElementById(id).value; return v ? parseFloat(v) : null; }
+function apNum(id) { const v = document.getElementById(id).value.replace(',','.'); return v ? parseFloat(v) : null; }
 
 async function handleAprov(e) {
   e.preventDefault();
@@ -959,6 +1002,99 @@ async function loadAprovados() {
   } catch(e) {
     list.innerHTML = '<div class="empty-state">Erro: ' + (e.message||e.code||'') + '</div>';
   }
+}
+
+async function runDiag() {
+  if (!db) { toast('Banco não disponível'); return; }
+  const pn = document.getElementById('diagPn').value.trim();
+  if (!pn) { toast('Digite o Part Number'); return; }
+  const docId = pn.replace(/[\s\.]/g, '_');
+  const resultCard = document.getElementById('diagResult');
+  const output = document.getElementById('diagOutput');
+  resultCard.style.display = 'none';
+
+  // Buscar referência dos aprovados
+  let ref = null;
+  try {
+    const snapA = await db.collection('aprovados').limit(200).get();
+    if (snapA.docs) {
+      const aprs = snapA.docs.filter(d => {
+        const a = d.data();
+        return a.partNumber && a.partNumber.replace(/[\s\.]/g,'_') === docId;
+      }).map(d => d.data());
+      if (aprs.length > 0) {
+        ref = { partNumber: pn, count: aprs.length, veiculo: aprs[0].veiculo || '' };
+        ['dnh','rls','dfk','mfk','ah'].forEach(k => {
+          const nums = aprs.map(a => a[k]).filter(v => v!=null && v!=='').map(Number).filter(n=>!isNaN(n));
+          if (nums.length === 1) ref[k] = { min: nums[0], ideal: nums[0], max: nums[0] };
+          else if (nums.length === 2) ref[k] = { min: Math.min(...nums), max: Math.max(...nums) };
+          else if (nums.length >= 3) {
+            const avg = Math.round((nums.reduce((s,n)=>s+n,0)/nums.length)*1000)/1000;
+            ref[k] = { min: Math.min(...nums), ideal: avg, max: Math.max(...nums) };
+          }
+        });
+        const atNums = aprs.map(a=>a.atracamento).filter(v=>v!=null&&v!=='').map(Number).filter(n=>!isNaN(n));
+        if (atNums.length===1) ref.atracamento={min:atNums[0],ideal:atNums[0],max:atNums[0]};
+        else if (atNums.length===2) ref.atracamento={min:Math.min(...atNums),max:Math.max(...atNums)};
+        else if (atNums.length>=3) ref.atracamento={min:Math.min(...atNums),ideal:Math.round((atNums.reduce((s,n)=>s+n,0)/atNums.length)*1000)/1000,max:Math.max(...atNums)};
+        const indNums = aprs.map(a=>a.indutancia).filter(v=>v!=null&&v!=='').map(Number).filter(n=>!isNaN(n));
+        if (indNums.length>0) { ref.indMin=Math.min(...indNums); ref.indMax=Math.max(...indNums); }
+      }
+    }
+  } catch(e) {}
+
+  if (!ref) {
+    toast('Nenhum injetor aprovado encontrado para esse Part Number.');
+    return;
+  }
+
+  // Comparar
+  let html = '<div style="font-size:14px">';
+  if (ref.veiculo) html += '<p><strong>Veículo:</strong> ' + ref.veiculo + '</p>';
+  html += '<p style="color:var(--text-sec);font-size:12px">Referência calculada de ' + ref.count + ' injetor(es) aprovado(s)</p>';
+  html += '<table style="width:100%;border-collapse:collapse;margin-top:8px">';
+  html += '<tr style="background:var(--surface-alt)"><th style="padding:6px;text-align:left">Parâmetro</th><th>Atual</th><th>Mín</th><th>Ideal</th><th>Máx</th><th>Status</th></tr>';
+
+  function checkParam(name, inputId, refObj) {
+    const atual = parseFloat(document.getElementById(inputId).value.replace(',','.'));
+    if (isNaN(atual) || !refObj) return '';
+    const mn = refObj.min != null ? Number(refObj.min) : null;
+    const id = refObj.ideal != null ? Number(refObj.ideal) : null;
+    const mx = refObj.max != null ? Number(refObj.max) : null;
+    let status = '', color = '';
+    if (mn !== null && atual < mn - 0.001) { status = '✗ ABAIXO'; color = '#c00'; }
+    else if (mx !== null && atual > mx + 0.001) { status = '✗ ACIMA'; color = '#c00'; }
+    else { status = '✓ OK'; color = 'var(--success-fg)'; }
+    return '<tr><td style="padding:6px;font-weight:600">' + name + '</td><td style="text-align:center">' + atual + '</td>' +
+      '<td style="text-align:center;color:var(--text-sec)">' + (mn!=null?mn:'—') + '</td>' +
+      '<td style="text-align:center;color:var(--text-sec)">' + (id!=null?id:'—') + '</td>' +
+      '<td style="text-align:center;color:var(--text-sec)">' + (mx!=null?mx:'—') + '</td>' +
+      '<td style="text-align:center;font-weight:700;color:' + color + '">' + status + '</td></tr>';
+  }
+
+  html += checkParam('DNH', 'diagDnh', ref.dnh);
+  html += checkParam('RLS', 'diagRls', ref.rls);
+  html += checkParam('DFK', 'diagDfk', ref.dfk);
+  html += checkParam('MFK', 'diagMfk', ref.mfk);
+  html += checkParam('AH/Gap', 'diagAh', ref.ah);
+  html += checkParam('Atracamento', 'diagAtrac', ref.atracamento);
+
+  // Indutância
+  const indAtual = parseFloat(document.getElementById('diagInd').value.replace(',','.'));
+  if (!isNaN(indAtual) && (ref.indMin || ref.indMax)) {
+    let st='', cl='';
+    if (ref.indMin && indAtual < ref.indMin) { st='✗ ABAIXO'; cl='#c00'; }
+    else if (ref.indMax && indAtual > ref.indMax) { st='✗ ACIMA'; cl='#c00'; }
+    else { st='✓ OK'; cl='var(--success-fg)'; }
+    html += '<tr><td style="padding:6px;font-weight:600">Indutância</td><td style="text-align:center">' + indAtual + ' mH</td>' +
+      '<td style="text-align:center;color:var(--text-sec)">' + (ref.indMin||'—') + '</td><td style="text-align:center">—</td>' +
+      '<td style="text-align:center;color:var(--text-sec)">' + (ref.indMax||'—') + '</td>' +
+      '<td style="text-align:center;font-weight:700;color:' + cl + '">' + st + '</td></tr>';
+  }
+
+  html += '</table></div>';
+  output.innerHTML = html;
+  resultCard.style.display = 'block';
 }
 
 init();
