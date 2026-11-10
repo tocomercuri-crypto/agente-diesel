@@ -314,11 +314,17 @@
           <div><label>Máx</label><input id="ahMax" type="number" step="any"></div>
         </div>
 
+        <div class="section-label">Mola do Bico</div>
         <div class="row">
-          <div><label for="molaBico">Mola do Bico</label>
-          <input id="molaBico" type="text" placeholder="Nº da mola do bico"></div>
-          <div><label for="molaBobina">Mola da Bobina</label>
-          <input id="molaBobina" type="text" placeholder="Nº da mola da bobina"></div>
+          <div><label>Mín</label><input id="molaBicoMin" type="number" step="any"></div>
+          <div><label>Ideal</label><input id="molaBicoIdeal" type="number" step="any"></div>
+          <div><label>Máx</label><input id="molaBicoMax" type="number" step="any"></div>
+        </div>
+        <div class="section-label">Mola da Bobina</div>
+        <div class="row">
+          <div><label>Mín</label><input id="molaBobinaMin" type="number" step="any"></div>
+          <div><label>Ideal</label><input id="molaBobinaIdeal" type="number" step="any"></div>
+          <div><label>Máx</label><input id="molaBobinaMax" type="number" step="any"></div>
         </div>
 
         <div class="section-label">Atracamento (A)</div>
@@ -326,6 +332,13 @@
           <div><label>Atrac. Mín</label><input id="atracMin" type="number" step="any"></div>
           <div><label>Ideal</label><input id="atracIdeal" type="number" step="any"></div>
           <div><label>Máx</label><input id="atracMax" type="number" step="any"></div>
+        </div>
+
+        <div class="section-label">Desatracamento (A)</div>
+        <div class="row">
+          <div><label>Desatrac. Mín</label><input id="desatracMin" type="number" step="any"></div>
+          <div><label>Ideal</label><input id="desatracIdeal" type="number" step="any"></div>
+          <div><label>Máx</label><input id="desatracMax" type="number" step="any"></div>
         </div>
 
         <div class="section-label">Componentes</div>
@@ -373,6 +386,11 @@
           <div><label>MFK</label><input id="apMfk" type="number" step="any"></div>
           <div><label>AH/Gap</label><input id="apAh" type="number" step="any"></div>
           <div><label>Atrac. (A)</label><input id="apAtrac" type="number" step="any"></div>
+          <div><label>Desatrac. (A)</label><input id="apDesatrac" type="number" step="any"></div>
+        </div>
+        <div class="row">
+          <div><label>Mola do Bico</label><input id="apMolaBico" type="number" step="any"></div>
+          <div><label>Mola da Bobina</label><input id="apMolaBobina" type="number" step="any"></div>
         </div>
 
         <div class="section-label">Resultado</div>
@@ -388,14 +406,13 @@
           <div><label>Pré-injeção 1</label><input id="apPre" type="text" placeholder="ml/min"></div>
           <div><label>Pré-injeção 2</label><input id="apPre2" type="text" placeholder="ml/min"></div>
         </div>
-        <div class="row">
-          <div><label>Mola do Bico</label><input id="apMolaBico" type="text" placeholder="Nº da mola"></div>
-          <div><label>Mola da Bobina</label><input id="apMolaBobina" type="text" placeholder="Nº da mola"></div>
-        </div>
         <label for="apObs">Observações</label>
         <textarea id="apObs" placeholder="Notas do teste..."></textarea>
 
-        <button type="submit" class="btn-submit" id="btnAprov">Salvar Aprovado</button>
+        <div class="row" style="gap:8px">
+          <button type="submit" class="btn-submit" id="btnAprov" style="flex:1">Salvar Aprovado</button>
+          <button type="button" class="btn-submit" id="btnCancelEdit" style="flex:0.5;background:#888;display:none" onclick="cancelEdit()">Cancelar</button>
+        </div>
       </form>
     </div>
     <div class="card">
@@ -418,24 +435,25 @@
       </div>
       <div class="section-label" style="margin-top:16px">Calços Atuais do Injetor</div>
       <div class="row">
-        <div><label>DNH</label><input id="diagDnh" type="number" step="any"></div>
-        <div><label>RLS</label><input id="diagRls" type="number" step="any"></div>
+        <div><label>DNH</label><input id="diagDnh" type="text" inputmode="decimal"></div>
+        <div><label>RLS</label><input id="diagRls" type="text" inputmode="decimal"></div>
       </div>
       <div class="row">
-        <div><label>DFK</label><input id="diagDfk" type="number" step="any"></div>
-        <div><label>MFK</label><input id="diagMfk" type="number" step="any"></div>
+        <div><label>DFK</label><input id="diagDfk" type="text" inputmode="decimal"></div>
+        <div><label>MFK</label><input id="diagMfk" type="text" inputmode="decimal"></div>
       </div>
       <div class="row">
-        <div><label>AH (Gap)</label><input id="diagAh" type="number" step="any"></div>
-        <div><label>Atrac. (A)</label><input id="diagAtrac" type="number" step="any"></div>
+        <div><label>AH (Gap)</label><input id="diagAh" type="text" inputmode="decimal"></div>
+        <div><label>Atrac. (A)</label><input id="diagAtrac" type="text" inputmode="decimal"></div>
+        <div><label>Desatrac. (A)</label><input id="diagDesatrac" type="text" inputmode="decimal"></div>
       </div>
       <div class="row">
-        <div><label>Indutância (mH)</label><input id="diagInd" type="number" step="any"></div>
-        <div><label>Resist. (Ω)</label><input id="diagRes" type="number" step="any"></div>
+        <div><label>Indutância (mH)</label><input id="diagInd" type="text" inputmode="decimal"></div>
+        <div><label>Resist. (Ω)</label><input id="diagRes" type="text" inputmode="decimal"></div>
       </div>
       <div class="row">
-        <div><label>Mola do Bico</label><input id="diagMolaBico" type="text"></div>
-        <div><label>Mola da Bobina</label><input id="diagMolaBobina" type="text"></div>
+        <div><label>Mola do Bico</label><input id="diagMolaBico" type="text" inputmode="decimal"></div>
+        <div><label>Mola da Bobina</label><input id="diagMolaBobina" type="text" inputmode="decimal"></div>
       </div>
     </div>
     <div class="card" id="diagResult" style="display:none">
@@ -472,6 +490,15 @@ SITUAÇÕES PRÁTICAS:
 - Bico sem pré-injeção → verificar AH (Gap), MFK, e amperagem. CRI1 família 110: 10A-15A, ideal 13,5A-14,5A.
 - Marcha lenta baixa com DFK correto → verificar indutância da bobina.
 - Carga parcial baixa / redundância alta → verificar calço RLS.
+
+INDUTÂNCIA:
+- Na montagem, a indutância não pode ser muito alta. Nunca acima de 300 mH — vale para válvula bastão original e pirata.
+
+INTERPRETAÇÃO DE VALORES:
+- Quando um calço (DNH, RLS, DFK, MFK, AH) ou função (atracamento, desatracamento) tem valor 0, significa que o injetor NÃO possui esse calço ou essa função. Exemplo: DNH = 0 no 0445110682 indica que esse injetor não usa o calço DNH.
+
+DADOS ESPECÍFICOS:
+- Injetores 0445110520 e 0445110682: amperagem (atracamento) máxima de 8A a 10A. Gap (AH) nunca acima de 50, nunca abaixo de 26.
 
 REGRAS:
 1. Responda SEMPRE em português brasileiro.
@@ -527,51 +554,60 @@ async function loadDbData() {
         if (d.ponteira) p.push('  Ponteira: ' + d.ponteira);
         if (d.valvula) p.push('  Válvula: ' + d.valvula);
         if (d.arruela) p.push('  Arruela de assento: ' + d.arruela + ' mm');
-        if (d.molaBico) p.push('  Mola do bico: ' + d.molaBico);
-        if (d.molaBobina) p.push('  Mola da bobina: ' + d.molaBobina);
+        if (d.molaBico) p.push('  Mola do bico: ' + (typeof d.molaBico === 'object' ? 'Mín=' + (d.molaBico.min||'?') + ' Ideal=' + (d.molaBico.ideal||'?') + ' Máx=' + (d.molaBico.max||'?') : d.molaBico));
+        if (d.molaBobina) p.push('  Mola da bobina: ' + (typeof d.molaBobina === 'object' ? 'Mín=' + (d.molaBobina.min||'?') + ' Ideal=' + (d.molaBobina.ideal||'?') + ' Máx=' + (d.molaBobina.max||'?') : d.molaBobina));
         if (d.dnh) p.push('  DNH: Mín=' + (d.dnh.min||'?') + ' Ideal=' + (d.dnh.ideal||'?') + ' Máx=' + (d.dnh.max||'?'));
         if (d.rls) p.push('  RLS: Mín=' + (d.rls.min||'?') + ' Ideal=' + (d.rls.ideal||'?') + ' Máx=' + (d.rls.max||'?'));
         if (d.dfk) p.push('  DFK: Mín=' + (d.dfk.min||'?') + ' Ideal=' + (d.dfk.ideal||'?') + ' Máx=' + (d.dfk.max||'?'));
         if (d.mfk) p.push('  MFK: Mín=' + (d.mfk.min||'?') + ' Ideal=' + (d.mfk.ideal||'?') + ' Máx=' + (d.mfk.max||'?'));
         if (d.ah) p.push('  AH/Gap: Mín=' + (d.ah.min||'?') + ' Ideal=' + (d.ah.ideal||'?') + ' Máx=' + (d.ah.max||'?'));
         if (d.atracamento) p.push('  Atracamento: Mín=' + (d.atracamento.min||'?') + ' Ideal=' + (d.atracamento.ideal||'?') + ' Máx=' + (d.atracamento.max||'?') + ' A');
+        if (d.desatracamento) p.push('  Desatracamento: Mín=' + (d.desatracamento.min||'?') + ' Ideal=' + (d.desatracamento.ideal||'?') + ' Máx=' + (d.desatracamento.max||'?') + ' A');
         if (d.obs) p.push('  Obs: ' + d.obs);
         return p.join('\n');
       });
       dbData = '\n\nDADOS DO BANCO DE INJETORES CADASTRADOS:\n\n' + lines.join('\n\n');
     }
   } catch(e) {}
-  // Carregar aprovados no contexto do agente
+  // Carregar aprovados agrupados por Part Number com faixas mín/máx
   try {
-    const snapA = await db.collection('aprovados').limit(100).get();
+    const snapA = await db.collection('aprovados').limit(200).get();
     if (snapA.docs && snapA.docs.length > 0) {
-      const aLines = snapA.docs.map(doc => {
+      const grouped = {};
+      snapA.docs.forEach(doc => {
         const d = doc.data();
-        let p = ['Aprovado: ' + (d.partNumber || '?')];
-        if (d.serie) p.push('  Série: ' + d.serie);
-        if (d.cliente) p.push('  Cliente: ' + d.cliente);
-        if (d.veiculo) p.push('  Veículo: ' + d.veiculo);
-        if (d.indutancia) p.push('  Indutância medida: ' + d.indutancia + ' mH');
-        if (d.resistencia) p.push('  Resistência medida: ' + d.resistencia + ' Ω');
-        if (d.dnh) p.push('  DNH medido: ' + d.dnh);
-        if (d.rls) p.push('  RLS medido: ' + d.rls);
-        if (d.dfk) p.push('  DFK medido: ' + d.dfk);
-        if (d.mfk) p.push('  MFK medido: ' + d.mfk);
-        if (d.ah) p.push('  AH medido: ' + d.ah);
-        if (d.atracamento) p.push('  Atracamento: ' + d.atracamento + ' A');
-        if (d.plenaCarga) p.push('  Plena Carga: ' + d.plenaCarga);
-        if (d.retorno) p.push('  Retorno: ' + d.retorno);
-        if (d.cargaParcial) p.push('  Carga Parcial: ' + d.cargaParcial);
-        if (d.marchaLenta) p.push('  Marcha Lenta: ' + d.marchaLenta);
-        if (d.preInjecao) p.push('  Pré-injeção 1: ' + d.preInjecao);
-        if (d.preInjecao2) p.push('  Pré-injeção 2: ' + d.preInjecao2);
-        if (d.molaBico) p.push('  Mola do bico: ' + d.molaBico);
-        if (d.molaBobina) p.push('  Mola da bobina: ' + d.molaBobina);
-        if (d.dataAprovacao) p.push('  Data: ' + new Date(d.dataAprovacao).toLocaleDateString('pt-BR'));
-        if (d.obs) p.push('  Obs: ' + d.obs);
+        const pn = d.partNumber || '?';
+        if (!grouped[pn]) grouped[pn] = [];
+        grouped[pn].push(d);
+      });
+      const aLines = Object.entries(grouped).map(([pn, testes]) => {
+        let p = ['Faixa observada do injetor ' + pn + ' (' + testes.length + ' testes aprovados):'];
+        function faixa(label, key, unit) {
+          const nums = testes.map(t=>t[key]).filter(v=>v!=null&&v!=='').map(v=>parseFloat(String(v).replace(',','.'))).filter(n=>!isNaN(n));
+          if (nums.length===0) return;
+          const mn = Math.min(...nums), mx = Math.max(...nums);
+          if (mn===mx) p.push('  ' + label + ': ' + mn + (unit||''));
+          else p.push('  ' + label + ': ' + mn + ' a ' + mx + (unit||''));
+        }
+        const veics = [...new Set(testes.map(t=>t.veiculo).filter(v=>v))];
+        if (veics.length>0) p.push('  Veículo: ' + veics.join(', '));
+        faixa('Indutância','indutancia',' mH');
+        faixa('Resistência','resistencia',' Ω');
+        faixa('DNH','dnh'); faixa('RLS','rls'); faixa('DFK','dfk');
+        faixa('MFK','mfk'); faixa('AH','ah');
+        faixa('Atracamento','atracamento',' A');
+        faixa('Desatracamento','desatracamento',' A');
+        faixa('Plena Carga','plenaCarga');
+        faixa('Retorno','retorno');
+        faixa('Carga Parcial','cargaParcial');
+        faixa('Marcha Lenta','marchaLenta');
+        faixa('Pré-injeção 1','preInjecao');
+        faixa('Pré-injeção 2','preInjecao2');
+        faixa('Mola do bico','molaBico');
+        faixa('Mola da bobina','molaBobina');
         return p.join('\n');
       });
-      dbData += '\n\nINJETORES APROVADOS (TESTADOS):\n\n' + aLines.join('\n\n');
+      dbData += '\n\nFAIXAS OBSERVADAS DOS INJETORES APROVADOS:\n\n' + aLines.join('\n\n');
     }
   } catch(e) {}
 }
@@ -711,11 +747,12 @@ async function buscarInjetor() {
       if (d.mfk) { setVal('mfkMin', d.mfk.min); setVal('mfkIdeal', d.mfk.ideal); setVal('mfkMax', d.mfk.max); }
       if (d.ah) { setVal('ahMin', d.ah.min); setVal('ahIdeal', d.ah.ideal); setVal('ahMax', d.ah.max); }
       if (d.atracamento) { setVal('atracMin', d.atracamento.min); setVal('atracIdeal', d.atracamento.ideal); setVal('atracMax', d.atracamento.max); }
+      if (d.desatracamento) { setVal('desatracMin', d.desatracamento.min); setVal('desatracIdeal', d.desatracamento.ideal); setVal('desatracMax', d.desatracamento.max); }
       setVal('ponteira', d.ponteira);
       setVal('valvula', d.valvula);
       setVal('arruela', d.arruela);
-      setVal('molaBico', d.molaBico);
-      setVal('molaBobina', d.molaBobina);
+      if (d.molaBico) { if (typeof d.molaBico === 'object') { setVal('molaBicoMin', d.molaBico.min); setVal('molaBicoIdeal', d.molaBico.ideal); setVal('molaBicoMax', d.molaBico.max); } else { setVal('molaBicoIdeal', d.molaBico); } }
+      if (d.molaBobina) { if (typeof d.molaBobina === 'object') { setVal('molaBobinaMin', d.molaBobina.min); setVal('molaBobinaIdeal', d.molaBobina.ideal); setVal('molaBobinaMax', d.molaBobina.max); } else { setVal('molaBobinaIdeal', d.molaBobina); } }
       setVal('obs', d.obs);
       // Verificar campos faltantes
       if (!d.veiculo) missing.push('Veículo');
@@ -838,11 +875,12 @@ async function handleSubmit(e) {
     mfk: { min: numVal('mfkMin'), ideal: numVal('mfkIdeal'), max: numVal('mfkMax') },
     ah:  { min: numVal('ahMin'),  ideal: numVal('ahIdeal'),  max: numVal('ahMax') },
     atracamento: { min: numVal('atracMin'), ideal: numVal('atracIdeal'), max: numVal('atracMax') },
+    desatracamento: { min: numVal('desatracMin'), ideal: numVal('desatracIdeal'), max: numVal('desatracMax') },
     ponteira: val('ponteira'),
     valvula: val('valvula'),
     arruela: val('arruela'),
-    molaBico: val('molaBico'),
-    molaBobina: val('molaBobina'),
+    molaBico: { min: numVal('molaBicoMin'), ideal: numVal('molaBicoIdeal'), max: numVal('molaBicoMax') },
+    molaBobina: { min: numVal('molaBobinaMin'), ideal: numVal('molaBobinaIdeal'), max: numVal('molaBobinaMax') },
     obs: val('obs'),
     dataRegistro: new Date().toISOString()
   };
@@ -886,11 +924,12 @@ async function loadHistory() {
       if (d.indMin || d.indMax) det.push('Indutância: ' + (d.indMin||'?') + '–' + (d.indMax||'?') + ' mH');
       if (d.resistencia) det.push('Resist. bobina: ' + d.resistencia + ' Ω');
       if (d.atracamento) det.push('Atracamento: ' + (d.atracamento.min||'?') + '–' + (d.atracamento.ideal||'?') + '–' + (d.atracamento.max||'?') + ' A');
+      if (d.desatracamento) det.push('Desatracamento: ' + (d.desatracamento.min||'?') + '–' + (d.desatracamento.ideal||'?') + '–' + (d.desatracamento.max||'?') + ' A');
       if (d.ponteira) det.push('Ponteira: ' + d.ponteira);
       if (d.valvula) det.push('Válvula: ' + d.valvula);
       if (d.arruela) det.push('Arruela: ' + d.arruela + ' mm');
-      if (d.molaBico) det.push('Mola bico: ' + d.molaBico);
-      if (d.molaBobina) det.push('Mola bobina: ' + d.molaBobina);
+      if (d.molaBico) det.push('Mola bico: ' + (typeof d.molaBico === 'object' ? (d.molaBico.min||'?') + '–' + (d.molaBico.ideal||'?') + '–' + (d.molaBico.max||'?') : d.molaBico));
+      if (d.molaBobina) det.push('Mola bobina: ' + (typeof d.molaBobina === 'object' ? (d.molaBobina.min||'?') + '–' + (d.molaBobina.ideal||'?') + '–' + (d.molaBobina.max||'?') : d.molaBobina));
       if (d.obs) det.push('Obs: ' + d.obs);
       div.innerHTML = '<div class="pn">' + (d.partNumber||doc.id) + '</div>' +
         (det.length ? '<div class="detail">' + det.join('<br>') + '</div>' : '');
@@ -903,6 +942,41 @@ async function loadHistory() {
 
 function apVal(id) { const v = document.getElementById(id).value.trim(); return v || null; }
 function apNum(id) { const v = document.getElementById(id).value.replace(',','.'); return v ? parseFloat(v) : null; }
+
+let editingAprovId = null;
+
+async function editAprov(docId) {
+  if (!db) return;
+  try {
+    const snap = await db.collection('aprovados').limit(200).get();
+    let d = null;
+    if (snap.docs) snap.docs.forEach(doc => { if (doc.id === docId) d = doc.data(); });
+    if (!d) { toast('Documento não encontrado'); return; }
+    const setV = (id,v) => { const el=document.getElementById(id); if(el) el.value = (v!=null?v:''); };
+    setV('apPn', d.partNumber); setV('apSerie', d.serie);
+    setV('apCliente', d.cliente); setV('apVeiculo', d.veiculo);
+    setV('apInd', d.indutancia); setV('apRes', d.resistencia);
+    setV('apDnh', d.dnh); setV('apRls', d.rls); setV('apDfk', d.dfk);
+    setV('apMfk', d.mfk); setV('apAh', d.ah); setV('apAtrac', d.atracamento); setV('apDesatrac', d.desatracamento);
+    setV('apPlena', d.plenaCarga); setV('apRetorno', d.retorno);
+    setV('apParcial', d.cargaParcial); setV('apMarcha', d.marchaLenta);
+    setV('apPre', d.preInjecao); setV('apPre2', d.preInjecao2);
+    setV('apMolaBico', d.molaBico); setV('apMolaBobina', d.molaBobina);
+    setV('apObs', d.obs);
+    editingAprovId = docId;
+    document.getElementById('btnAprov').textContent = 'Atualizar Aprovado';
+    document.getElementById('btnCancelEdit').style.display = 'inline-block';
+    showTab('aprovados');
+    document.getElementById('frmAprov').scrollIntoView({behavior:'smooth'});
+  } catch(err) { toast('Erro ao carregar: ' + (err.message||'')); }
+}
+
+function cancelEdit() {
+  editingAprovId = null;
+  document.getElementById('frmAprov').reset();
+  document.getElementById('btnAprov').textContent = 'Salvar Aprovado';
+  document.getElementById('btnCancelEdit').style.display = 'none';
+}
 
 async function handleAprov(e) {
   e.preventDefault();
@@ -923,23 +997,32 @@ async function handleAprov(e) {
     mfk: apNum('apMfk'),
     ah: apNum('apAh'),
     atracamento: apNum('apAtrac'),
+    desatracamento: apNum('apDesatrac'),
     plenaCarga: apVal('apPlena'),
     retorno: apVal('apRetorno'),
     cargaParcial: apVal('apParcial'),
     marchaLenta: apVal('apMarcha'),
     preInjecao: apVal('apPre'),
     preInjecao2: apVal('apPre2'),
-    molaBico: apVal('apMolaBico'),
-    molaBobina: apVal('apMolaBobina'),
+    molaBico: apNum('apMolaBico'),
+    molaBobina: apNum('apMolaBobina'),
     obs: apVal('apObs'),
-    dataAprovacao: new Date().toISOString(),
+    dataAprovacao: editingAprovId ? undefined : new Date().toISOString(),
     status: 'aprovado'
   };
-  Object.keys(data).forEach(k => { if (data[k] === null) delete data[k]; });
+  Object.keys(data).forEach(k => { if (data[k] === null || data[k] === undefined) delete data[k]; });
 
   try {
-    await db.collection("aprovados").add(data);
-    toast('✓ Salvo no banco! Enviando para planilha...');
+    if (editingAprovId) {
+      await db.collection("aprovados").doc(editingAprovId).update(data);
+      toast('✓ Atualizado com sucesso!');
+      editingAprovId = null;
+      document.getElementById('btnCancelEdit').style.display = 'none';
+    } else {
+      data.dataAprovacao = new Date().toISOString();
+      await db.collection("aprovados").add(data);
+      toast('✓ Salvo no banco! Enviando para planilha...');
+    }
     document.getElementById('frmAprov').reset();
     await loadAprovados();
     // Enviar para Google Sheets
@@ -980,11 +1063,10 @@ async function handleAprov(e) {
   } catch(err) {
     toast('Erro: ' + (err.message || err.code || 'desconhecido'));
   }
-  btn.disabled = false; btn.textContent = 'Salvar Aprovado';
+  btn.disabled = false; btn.textContent = editingAprovId ? 'Atualizar Aprovado' : 'Salvar Aprovado';
 }
 
 async function deleteAprov(docId) {
-  if (!confirm('Tem certeza que deseja apagar este injetor aprovado?')) return;
   try {
     await db.collection('aprovados').doc(docId).delete();
     toast('Injetor removido.');
@@ -1017,12 +1099,14 @@ async function loadAprovados() {
       const calcos = [d.dnh&&'DNH:'+d.dnh, d.rls&&'RLS:'+d.rls, d.dfk&&'DFK:'+d.dfk, d.mfk&&'MFK:'+d.mfk, d.ah&&'AH:'+d.ah].filter(Boolean);
       if (calcos.length) det.push('Calços: ' + calcos.join(' | '));
       if (d.atracamento) det.push('Atrac: ' + d.atracamento + ' A');
+      if (d.desatracamento) det.push('Desatrac: ' + d.desatracamento + ' A');
       const res = [d.plenaCarga&&'Plena:'+d.plenaCarga, d.retorno&&'Ret:'+d.retorno, d.cargaParcial&&'Parcial:'+d.cargaParcial, d.marchaLenta&&'ML:'+d.marchaLenta, d.preInjecao&&'Pré1:'+d.preInjecao, d.preInjecao2&&'Pré2:'+d.preInjecao2].filter(Boolean);
       if (res.length) det.push(res.join(' | '));
       const dt = d.dataAprovacao ? new Date(d.dataAprovacao).toLocaleDateString('pt-BR') : '';
       const docId = doc.id;
       div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:start"><div class="pn">' + (d.partNumber||'?') + (dt ? ' — ' + dt : '') + '</div>' +
-        '<button onclick="deleteAprov(\'' + docId + '\')" style="background:#c00;color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;white-space:nowrap">Apagar</button></div>' +
+        '<div style="display:flex;gap:4px"><button onclick="editAprov(\'' + docId + '\')" style="background:#0a7;color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;white-space:nowrap">Editar</button>' +
+        '<button onclick="deleteAprov(\'' + docId + '\')" style="background:#c00;color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;white-space:nowrap">Apagar</button></div></div>' +
         (det.length ? '<div class="detail">' + det.join('<br>') + '</div>' : '');
       list.appendChild(div);
     });
@@ -1064,12 +1148,21 @@ async function runDiag() {
         if (atNums.length===1) ref.atracamento={min:atNums[0],ideal:atNums[0],max:atNums[0]};
         else if (atNums.length===2) ref.atracamento={min:Math.min(...atNums),max:Math.max(...atNums)};
         else if (atNums.length>=3) ref.atracamento={min:Math.min(...atNums),ideal:Math.round((atNums.reduce((s,n)=>s+n,0)/atNums.length)*1000)/1000,max:Math.max(...atNums)};
+        const desNums = aprs.map(a=>a.desatracamento).filter(v=>v!=null&&v!=='').map(Number).filter(n=>!isNaN(n));
+        if (desNums.length===1) ref.desatracamento={min:desNums[0],ideal:desNums[0],max:desNums[0]};
+        else if (desNums.length===2) ref.desatracamento={min:Math.min(...desNums),max:Math.max(...desNums)};
+        else if (desNums.length>=3) ref.desatracamento={min:Math.min(...desNums),ideal:Math.round((desNums.reduce((s,n)=>s+n,0)/desNums.length)*1000)/1000,max:Math.max(...desNums)};
         const indNums = aprs.map(a=>a.indutancia).filter(v=>v!=null&&v!=='').map(Number).filter(n=>!isNaN(n));
         if (indNums.length>0) { ref.indMin=Math.min(...indNums); ref.indMax=Math.max(...indNums); }
-        const mbs = aprs.map(a=>a.molaBico).filter(v=>v!=null&&v!=='');
-        if (mbs.length>0) ref.molaBico = [...new Set(mbs)];
-        const mbbs = aprs.map(a=>a.molaBobina).filter(v=>v!=null&&v!=='');
-        if (mbbs.length>0) ref.molaBobina = [...new Set(mbbs)];
+        ['molaBico','molaBobina'].forEach(k => {
+          const nums = aprs.map(a=>a[k]).filter(v=>v!=null&&v!=='').map(v=>parseFloat(String(v).replace(',','.'))).filter(n=>!isNaN(n));
+          if (nums.length===1) ref[k]={min:nums[0],ideal:nums[0],max:nums[0]};
+          else if (nums.length===2) ref[k]={min:Math.min(...nums),max:Math.max(...nums)};
+          else if (nums.length>=3) {
+            const avg=Math.round((nums.reduce((s,n)=>s+n,0)/nums.length)*1000)/1000;
+            ref[k]={min:Math.min(...nums),ideal:avg,max:Math.max(...nums)};
+          }
+        });
       }
     }
   } catch(e) {}
@@ -1109,6 +1202,7 @@ async function runDiag() {
   html += checkParam('MFK', 'diagMfk', ref.mfk);
   html += checkParam('AH/Gap', 'diagAh', ref.ah);
   html += checkParam('Atracamento', 'diagAtrac', ref.atracamento);
+  html += checkParam('Desatracamento', 'diagDesatrac', ref.desatracamento);
 
   // Indutância
   const indAtual = parseFloat(document.getElementById('diagInd').value.replace(',','.'));
@@ -1124,18 +1218,8 @@ async function runDiag() {
   }
 
   // Molas
-  function checkMola(name, inputId, refList) {
-    const atual = document.getElementById(inputId).value.trim();
-    if (!atual || !refList || refList.length === 0) return '';
-    const ok = refList.some(r => r.toLowerCase() === atual.toLowerCase());
-    const st = ok ? '✓ OK' : '✗ DIFERENTE';
-    const cl = ok ? 'var(--success-fg)' : '#c00';
-    return '<tr><td style="padding:6px;font-weight:600">' + name + '</td><td style="text-align:center">' + atual + '</td>' +
-      '<td colspan="3" style="text-align:center;color:var(--text-sec)">' + refList.join(', ') + '</td>' +
-      '<td style="text-align:center;font-weight:700;color:' + cl + '">' + st + '</td></tr>';
-  }
-  html += checkMola('Mola do Bico', 'diagMolaBico', ref.molaBico);
-  html += checkMola('Mola da Bobina', 'diagMolaBobina', ref.molaBobina);
+  html += checkParam('Mola do Bico', 'diagMolaBico', ref.molaBico);
+  html += checkParam('Mola da Bobina', 'diagMolaBobina', ref.molaBobina);
 
   html += '</table></div>';
   output.innerHTML = html;
