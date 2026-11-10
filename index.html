@@ -167,6 +167,7 @@
     border-radius:10px; color:var(--text); font-family:inherit; box-sizing:border-box;
   }
   input:focus, textarea:focus { outline:none; border-color:var(--primary); }
+  input[readonly] { background:var(--surface); opacity:0.7; cursor:default; }
   textarea { resize:vertical; min-height:60px; }
   .row { display:flex; gap:10px; }
   .row > div { flex:1; min-width:0; }
@@ -281,64 +282,64 @@
 
         <div class="section-label">Parâmetros Elétricos</div>
         <div class="row">
-          <div><label for="indMin">Indut. Mín (mH)</label><input id="indMin" type="number" step="any" placeholder="190"></div>
-          <div><label for="indMax">Indut. Máx (mH)</label><input id="indMax" type="number" step="any" placeholder="220"></div>
+          <div><label for="indMin">Indut. Mín (mH)</label><input id="indMin" type="number" step="any" placeholder="190" readonly></div>
+          <div><label for="indMax">Indut. Máx (mH)</label><input id="indMax" type="number" step="any" placeholder="220" readonly></div>
         </div>
         <label for="resistencia">Resistência Bobina (Ω)</label>
-        <input id="resistencia" type="text" placeholder="Ex: 0.3 a 0.5">
+        <input id="resistencia" type="text" placeholder="Ex: 0.3 a 0.5" readonly>
 
         <div class="section-label">Calços (Shims)</div>
         <div class="row">
-          <div><label>DNH Mín</label><input id="dnhMin" type="number" step="any"></div>
-          <div><label>Ideal</label><input id="dnhIdeal" type="number" step="any"></div>
-          <div><label>Máx</label><input id="dnhMax" type="number" step="any"></div>
+          <div><label>DNH Mín</label><input id="dnhMin" type="number" step="any" readonly></div>
+          <div><label>Ideal</label><input id="dnhIdeal" type="number" step="any" readonly></div>
+          <div><label>Máx</label><input id="dnhMax" type="number" step="any" readonly></div>
         </div>
         <div class="row">
-          <div><label>RLS Mín</label><input id="rlsMin" type="number" step="any"></div>
-          <div><label>Ideal</label><input id="rlsIdeal" type="number" step="any"></div>
-          <div><label>Máx</label><input id="rlsMax" type="number" step="any"></div>
+          <div><label>RLS Mín</label><input id="rlsMin" type="number" step="any" readonly></div>
+          <div><label>Ideal</label><input id="rlsIdeal" type="number" step="any" readonly></div>
+          <div><label>Máx</label><input id="rlsMax" type="number" step="any" readonly></div>
         </div>
         <div class="row">
-          <div><label>DFK Mín</label><input id="dfkMin" type="number" step="any"></div>
-          <div><label>Ideal</label><input id="dfkIdeal" type="number" step="any"></div>
-          <div><label>Máx</label><input id="dfkMax" type="number" step="any"></div>
+          <div><label>DFK Mín</label><input id="dfkMin" type="number" step="any" readonly></div>
+          <div><label>Ideal</label><input id="dfkIdeal" type="number" step="any" readonly></div>
+          <div><label>Máx</label><input id="dfkMax" type="number" step="any" readonly></div>
         </div>
         <div class="row">
-          <div><label>MFK Mín</label><input id="mfkMin" type="number" step="any"></div>
-          <div><label>Ideal</label><input id="mfkIdeal" type="number" step="any"></div>
-          <div><label>Máx</label><input id="mfkMax" type="number" step="any"></div>
+          <div><label>MFK Mín</label><input id="mfkMin" type="number" step="any" readonly></div>
+          <div><label>Ideal</label><input id="mfkIdeal" type="number" step="any" readonly></div>
+          <div><label>Máx</label><input id="mfkMax" type="number" step="any" readonly></div>
         </div>
         <div class="row">
-          <div><label>AH Mín</label><input id="ahMin" type="number" step="any"></div>
-          <div><label>Ideal</label><input id="ahIdeal" type="number" step="any"></div>
-          <div><label>Máx</label><input id="ahMax" type="number" step="any"></div>
+          <div><label>AH Mín</label><input id="ahMin" type="number" step="any" readonly></div>
+          <div><label>Ideal</label><input id="ahIdeal" type="number" step="any" readonly></div>
+          <div><label>Máx</label><input id="ahMax" type="number" step="any" readonly></div>
         </div>
 
         <div class="section-label">Mola do Bico</div>
         <div class="row">
-          <div><label>Mín</label><input id="molaBicoMin" type="number" step="any"></div>
-          <div><label>Ideal</label><input id="molaBicoIdeal" type="number" step="any"></div>
-          <div><label>Máx</label><input id="molaBicoMax" type="number" step="any"></div>
+          <div><label>Mín</label><input id="molaBicoMin" type="number" step="any" readonly></div>
+          <div><label>Ideal</label><input id="molaBicoIdeal" type="number" step="any" readonly></div>
+          <div><label>Máx</label><input id="molaBicoMax" type="number" step="any" readonly></div>
         </div>
         <div class="section-label">Mola da Bobina</div>
         <div class="row">
-          <div><label>Mín</label><input id="molaBobinaMin" type="number" step="any"></div>
-          <div><label>Ideal</label><input id="molaBobinaIdeal" type="number" step="any"></div>
-          <div><label>Máx</label><input id="molaBobinaMax" type="number" step="any"></div>
+          <div><label>Mín</label><input id="molaBobinaMin" type="number" step="any" readonly></div>
+          <div><label>Ideal</label><input id="molaBobinaIdeal" type="number" step="any" readonly></div>
+          <div><label>Máx</label><input id="molaBobinaMax" type="number" step="any" readonly></div>
         </div>
 
         <div class="section-label">Atracamento (A)</div>
         <div class="row">
-          <div><label>Atrac. Mín</label><input id="atracMin" type="number" step="any"></div>
-          <div><label>Ideal</label><input id="atracIdeal" type="number" step="any"></div>
-          <div><label>Máx</label><input id="atracMax" type="number" step="any"></div>
+          <div><label>Atrac. Mín</label><input id="atracMin" type="number" step="any" readonly></div>
+          <div><label>Ideal</label><input id="atracIdeal" type="number" step="any" readonly></div>
+          <div><label>Máx</label><input id="atracMax" type="number" step="any" readonly></div>
         </div>
 
         <div class="section-label">Desatracamento (A)</div>
         <div class="row">
-          <div><label>Desatrac. Mín</label><input id="desatracMin" type="number" step="any"></div>
-          <div><label>Ideal</label><input id="desatracIdeal" type="number" step="any"></div>
-          <div><label>Máx</label><input id="desatracMax" type="number" step="any"></div>
+          <div><label>Desatrac. Mín</label><input id="desatracMin" type="number" step="any" readonly></div>
+          <div><label>Ideal</label><input id="desatracIdeal" type="number" step="any" readonly></div>
+          <div><label>Máx</label><input id="desatracMax" type="number" step="any" readonly></div>
         </div>
 
         <div class="section-label">Componentes</div>
