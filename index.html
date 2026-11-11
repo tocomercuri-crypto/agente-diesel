@@ -793,12 +793,15 @@ async function buscarInjetor() {
           {key:'mfk', ids:['mfkMin','mfkIdeal','mfkMax']},
           {key:'ah',  ids:['ahMin','ahIdeal','ahMax']},
           {key:'atracamento', ids:['atracMin','atracIdeal','atracMax']},
+          {key:'desatracamento', ids:['desatracMin','desatracIdeal','desatracMax']},
+          {key:'molaBico', ids:['molaBicoMin','molaBicoIdeal','molaBicoMax']},
+          {key:'molaBobina', ids:['molaBobinaMin','molaBobinaIdeal','molaBobinaMax']},
           {key:'indutancia', ids:['indMin','indMin','indMax']}
         ];
         campos.forEach(c => {
           const vals = aprovados.map(a => a[c.key]).filter(v => v !== null && v !== undefined && v !== '');
           if (vals.length === 0) return;
-          const nums = vals.map(Number).filter(n => !isNaN(n));
+          const nums = vals.map(v => Number(String(v).replace(',','.'))).filter(n => !isNaN(n));
           if (nums.length === 0) return;
           if (c.key === 'indutancia') {
             if (!numVal('indMin')) setVal('indMin', Math.min(...nums));
