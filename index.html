@@ -564,7 +564,6 @@ async function loadDbData() {
         if (d.ah) p.push('  AH/Gap: Mín=' + (d.ah.min||'?') + ' Ideal=' + (d.ah.ideal||'?') + ' Máx=' + (d.ah.max||'?'));
         if (d.atracamento) p.push('  Atracamento: Mín=' + (d.atracamento.min||'?') + ' Ideal=' + (d.atracamento.ideal||'?') + ' Máx=' + (d.atracamento.max||'?') + ' A');
         if (d.desatracamento) p.push('  Desatracamento: Mín=' + (d.desatracamento.min||'?') + ' Ideal=' + (d.desatracamento.ideal||'?') + ' Máx=' + (d.desatracamento.max||'?') + ' A');
-        if (d.obs) p.push('  Obs: ' + d.obs);
         return p.join('\n');
       });
       dbData = '\n\nDADOS DO BANCO DE INJETORES CADASTRADOS:\n\n' + lines.join('\n\n');
@@ -902,6 +901,7 @@ async function handleSubmit(e) {
     toast('✓ Injetor ' + pn + ' salvo!');
     document.getElementById('frm').reset();
     await loadDbData();
+    await loadHistory();
   } catch(err) {
     toast('Erro: ' + (err.message || err.code || 'desconhecido'));
   }
@@ -934,7 +934,6 @@ async function loadHistory() {
       if (d.arruela) det.push('Arruela: ' + d.arruela + ' mm');
       if (d.molaBico) det.push('Mola bico: ' + (typeof d.molaBico === 'object' ? (d.molaBico.min||'?') + '–' + (d.molaBico.ideal||'?') + '–' + (d.molaBico.max||'?') : d.molaBico));
       if (d.molaBobina) det.push('Mola bobina: ' + (typeof d.molaBobina === 'object' ? (d.molaBobina.min||'?') + '–' + (d.molaBobina.ideal||'?') + '–' + (d.molaBobina.max||'?') : d.molaBobina));
-      if (d.obs) det.push('Obs: ' + d.obs);
       const docId = doc.id;
       div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center"><div class="pn">' + (d.partNumber||docId) + '</div>' +
         '<button onclick="deleteInjetor(\'' + docId + '\')" style="background:#c00;color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;white-space:nowrap">Apagar</button></div>' +
@@ -990,7 +989,7 @@ async function editAprov(docId) {
     editingAprovId = docId;
     document.getElementById('btnAprov').textContent = 'Atualizar Aprovado';
     document.getElementById('btnCancelEdit').style.display = 'inline-block';
-    showTab('aprovados');
+    switchPage('aprovados');
     document.getElementById('frmAprov').scrollIntoView({behavior:'smooth'});
   } catch(err) { toast('Erro ao carregar: ' + (err.message||'')); }
 }
@@ -1210,12 +1209,9 @@ async function runDiag() {
     const id = refObj.ideal != null ? Number(refObj.ideal) : null;
     const mx = refObj.max != null ? Number(refObj.max) : null;
     let status = '', color = '';
-    const idealV = id != null ? id : (mn!=null&&mx!=null?(mn+mx)/2:null);
-    const desvPct = idealV!=null&&idealV!==0 ? Math.abs((atual-idealV)/idealV)*100 : 0;
-    if (mn !== null && atual < mn - 0.001) { status = '✗ ABAIXO'; }
-    else if (mx !== null && atual > mx + 0.001) { status = '✗ ACIMA'; }
-    else { status = '✓ OK'; }
-    color = desvPct <= 5 ? '#2196F3' : desvPct <= 10 ? '#0a7' : desvPct <= 15 ? '#f0ad00' : '#c00';
+    if (mn !== null && atual < mn - 0.001) { status = '✗ REPROVADO'; color = '#c00'; }
+    else if (mx !== null && atual > mx + 0.001) { status = '✗ REPROVADO'; color = '#c00'; }
+    else { status = '✓ APROVADO'; color = '#0a7'; }
     return '<tr><td style="padding:6px;font-weight:600">' + name + '</td><td style="text-align:center">' + atual + '</td>' +
       '<td style="text-align:center;color:var(--text-sec)">' + (mn!=null?mn:'—') + '</td>' +
       '<td style="text-align:center;color:var(--text-sec)">' + (id!=null?id:'—') + '</td>' +
@@ -1234,13 +1230,10 @@ async function runDiag() {
   // Indutância
   const indAtual = parseFloat(document.getElementById('diagInd').value.replace(',','.'));
   if (!isNaN(indAtual) && (ref.indMin || ref.indMax)) {
-    let st='';
-    if (ref.indMin && indAtual < ref.indMin) { st='✗ ABAIXO'; }
-    else if (ref.indMax && indAtual > ref.indMax) { st='✗ ACIMA'; }
-    else { st='✓ OK'; }
-    const indIdeal = ref.indMin&&ref.indMax?(ref.indMin+ref.indMax)/2:(ref.indMin||ref.indMax);
-    const indDesv = indIdeal?Math.abs((indAtual-indIdeal)/indIdeal)*100:0;
-    const cl = indDesv<=5?'#2196F3':indDesv<=10?'#0a7':indDesv<=15?'#f0ad00':'#c00';
+    let st='', cl='';
+    if (ref.indMin && indAtual < ref.indMin) { st='✗ REPROVADO'; cl='#c00'; }
+    else if (ref.indMax && indAtual > ref.indMax) { st='✗ REPROVADO'; cl='#c00'; }
+    else { st='✓ APROVADO'; cl='#0a7'; }
     html += '<tr><td style="padding:6px;font-weight:600">Indutância</td><td style="text-align:center">' + indAtual + ' mH</td>' +
       '<td style="text-align:center;color:var(--text-sec)">' + (ref.indMin||'—') + '</td><td style="text-align:center">—</td>' +
       '<td style="text-align:center;color:var(--text-sec)">' + (ref.indMax||'—') + '</td>' +
@@ -1253,9 +1246,11 @@ async function runDiag() {
 
   html += '</table>';
 
-  // Gráfico de desvio do ideal
-  html += '<div style="margin-top:16px"><div style="font-weight:700;font-size:14px;margin-bottom:8px">📊 Desvio do Ideal</div>';
-  html += '<canvas id="diagChart" width="600" height="260" style="width:100%;max-width:600px;height:auto"></canvas></div>';
+  // Gráfico de barras - posição do valor atual dentro da faixa
+  html += '<div style="margin-top:16px"><div style="font-weight:700;font-size:14px;margin-bottom:12px">📊 Resultado do Diagnóstico</div>';
+  html += '<canvas id="diagChart" width="700" height="520" style="width:100%;max-width:700px;height:auto"></canvas></div>';
+
+  html += '<button onclick="askPdfName()" style="margin-top:16px;background:var(--primary);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:14px;cursor:pointer;width:100%">📄 Gerar PDF do Diagnóstico</button>';
 
   html += '</div>';
   output.innerHTML = html;
@@ -1269,20 +1264,22 @@ function drawDiagChart(ref) {
   const canvas = document.getElementById('diagChart');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  ctx.clearRect(0,0,W,H);
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = 700 * dpr; canvas.height = 320 * dpr;
+  ctx.scale(dpr, dpr);
+  const W = 700, H = 520;
 
   const params = [
     {name:'DNH', id:'diagDnh', ref:ref.dnh},
     {name:'RLS', id:'diagRls', ref:ref.rls},
     {name:'DFK', id:'diagDfk', ref:ref.dfk},
     {name:'MFK', id:'diagMfk', ref:ref.mfk},
-    {name:'AH', id:'diagAh', ref:ref.ah},
-    {name:'Atrac', id:'diagAtrac', ref:ref.atracamento},
-    {name:'Desatrac', id:'diagDesatrac', ref:ref.desatracamento},
-    {name:'Indut', id:'diagInd', ref:(ref.indMin||ref.indMax)?{min:ref.indMin,ideal:ref.indMin&&ref.indMax?((ref.indMin+ref.indMax)/2):null,max:ref.indMax}:null},
-    {name:'M.Bico', id:'diagMolaBico', ref:ref.molaBico},
-    {name:'M.Bob', id:'diagMolaBobina', ref:ref.molaBobina}
+    {name:'AH/Gap', id:'diagAh', ref:ref.ah},
+    {name:'Atracamento', id:'diagAtrac', ref:ref.atracamento},
+    {name:'Desatracamento', id:'diagDesatrac', ref:ref.desatracamento},
+    {name:'Indutância', id:'diagInd', ref:(ref.indMin||ref.indMax)?{min:ref.indMin,ideal:ref.indMin&&ref.indMax?((ref.indMin+ref.indMax)/2):null,max:ref.indMax}:null},
+    {name:'Mola Bico', id:'diagMolaBico', ref:ref.molaBico},
+    {name:'Mola Bobina', id:'diagMolaBobina', ref:ref.molaBobina}
   ];
 
   const data = [];
@@ -1292,71 +1289,166 @@ function drawDiagChart(ref) {
     if (!el) return;
     const atual = parseFloat(el.value.replace(',','.'));
     if (isNaN(atual)) return;
-    const ideal = p.ref.ideal != null ? Number(p.ref.ideal) : (p.ref.min!=null&&p.ref.max!=null ? (Number(p.ref.min)+Number(p.ref.max))/2 : null);
-    if (ideal == null || ideal === 0) return;
-    const desvio = ((atual - ideal) / ideal) * 100;
     const mn = p.ref.min != null ? Number(p.ref.min) : null;
     const mx = p.ref.max != null ? Number(p.ref.max) : null;
     let ok = true;
     if (mn !== null && atual < mn - 0.001) ok = false;
     if (mx !== null && atual > mx + 0.001) ok = false;
-    data.push({name:p.name, desvio:Math.round(desvio*10)/10, ok});
+    data.push({name:p.name, atual, min:mn, max:mx, ok});
   });
 
   if (data.length === 0) return;
 
-  const marginL = 70, marginR = 20, marginT = 10, marginB = 40;
+  const marginL = 90, marginR = 50, marginT = 10, marginB = 10;
   const chartW = W - marginL - marginR;
-  const chartH = H - marginT - marginB;
-  const barH = Math.min(22, (chartH - (data.length-1)*4) / data.length);
-  const gap = 4;
-  const totalH = data.length * barH + (data.length-1)*gap;
-  const startY = marginT + (chartH - totalH)/2;
+  const barH = 28;
+  const gap = 20;
+  const totalH = data.length * (barH + gap);
 
-  const maxAbs = Math.max(10, ...data.map(d=>Math.abs(d.desvio)));
-  const scale = (chartW/2) / maxAbs;
+  // Ajustar canvas height
+  const needed = marginT + totalH + marginB;
+  if (needed > H) { canvas.height = needed * dpr; ctx.scale(dpr, dpr); }
 
-  // Eixo zero
-  const zeroX = marginL + chartW/2;
-  ctx.strokeStyle = '#888'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(zeroX, marginT); ctx.lineTo(zeroX, H-marginB); ctx.stroke();
-
-  // Grid lines
-  ctx.strokeStyle = '#444'; ctx.lineWidth = 0.5;
-  [-maxAbs, -maxAbs/2, maxAbs/2, maxAbs].forEach(v => {
-    const x = zeroX + v * scale;
-    ctx.beginPath(); ctx.moveTo(x, marginT); ctx.lineTo(x, H-marginB); ctx.stroke();
-  });
-
-  // Barras
   data.forEach((d, i) => {
-    const y = startY + i * (barH + gap);
-    const barW = Math.abs(d.desvio) * scale;
-    const x = d.desvio >= 0 ? zeroX : zeroX - barW;
-    const absD = Math.abs(d.desvio);
-    const barColor = absD <= 5 ? '#2196F3' : absD <= 10 ? '#0a7' : absD <= 15 ? '#f0ad00' : '#c00';
-    ctx.fillStyle = barColor;
+    const y = marginT + i * (barH + gap);
+
+    // Label
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#ccc';
+    ctx.font = '12px system-ui'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ctx.fillText(d.name, marginL - 8, y + barH/2);
+
+    // Faixa total (barra cinza de fundo)
+    const rangeMin = d.min != null ? d.min : d.atual * 0.8;
+    const rangeMax = d.max != null ? d.max : d.atual * 1.2;
+    const spread = rangeMax - rangeMin;
+    const viewMin = rangeMin - spread * 0.3;
+    const viewMax = rangeMax + spread * 0.3;
+    const viewSpread = viewMax - viewMin;
+
+    // Fundo
+    ctx.fillStyle = 'rgba(128,128,128,0.15)';
+    ctx.beginPath(); ctx.roundRect(marginL, y, chartW, barH, 4); ctx.fill();
+
+    // Faixa aprovada (verde claro)
+    if (d.min != null && d.max != null) {
+      const x1 = marginL + ((d.min - viewMin) / viewSpread) * chartW;
+      const x2 = marginL + ((d.max - viewMin) / viewSpread) * chartW;
+      ctx.fillStyle = 'rgba(10,119,55,0.2)';
+      ctx.fillRect(x1, y, x2 - x1, barH);
+    }
+
+    // Marcador do valor atual — linha vertical + triângulo + valor
+    const xAtual = marginL + Math.max(0, Math.min(1, (d.atual - viewMin) / viewSpread)) * chartW;
+    const markerColor = d.ok ? '#0a7' : '#c00';
+
+    // Linha vertical
+    ctx.strokeStyle = markerColor; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(xAtual, y - 2); ctx.lineTo(xAtual, y + barH + 2); ctx.stroke();
+
+    // Triângulo apontando para baixo
+    ctx.fillStyle = markerColor;
     ctx.beginPath();
-    const r = 4;
-    ctx.roundRect(x, y, barW, barH, [r,r,r,r]);
-    ctx.fill();
+    ctx.moveTo(xAtual - 6, y - 2);
+    ctx.lineTo(xAtual + 6, y - 2);
+    ctx.lineTo(xAtual, y + 5);
+    ctx.closePath(); ctx.fill();
 
-    // Label esquerda
-    ctx.fillStyle = '#aaa'; ctx.font = '11px system-ui'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-    ctx.fillText(d.name, marginL - 6, y + barH/2);
+    // Círculo na base
+    ctx.beginPath(); ctx.arc(xAtual, y + barH + 2, 3, 0, Math.PI * 2); ctx.fill();
 
-    // Valor
-    ctx.fillStyle = barColor; ctx.font = 'bold 10px system-ui';
-    ctx.textAlign = d.desvio >= 0 ? 'left' : 'right';
-    const valX = d.desvio >= 0 ? x + barW + 4 : x - 4;
-    ctx.fillText((d.desvio > 0 ? '+' : '') + d.desvio + '%', valX, y + barH/2);
+    // Valor atual texto acima
+    ctx.fillStyle = markerColor; ctx.font = 'bold 12px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(d.atual.toString(), xAtual, y - 8);
+
+    // Mín/Máx labels
+    if (d.min != null) {
+      const xMin = marginL + ((d.min - viewMin) / viewSpread) * chartW;
+      ctx.fillStyle = '#888'; ctx.font = '9px system-ui'; ctx.textAlign = 'center';
+      ctx.fillText(d.min.toString(), xMin, y + barH + 9);
+    }
+    if (d.max != null) {
+      const xMax = marginL + ((d.max - viewMin) / viewSpread) * chartW;
+      ctx.fillStyle = '#888'; ctx.font = '9px system-ui'; ctx.textAlign = 'center';
+      ctx.fillText(d.max.toString(), xMax, y + barH + 9);
+    }
+
+    // Ícone status
+    ctx.font = 'bold 12px system-ui'; ctx.textAlign = 'left';
+    ctx.fillStyle = markerColor;
+    ctx.fillText(d.ok ? '✓' : '✗', W - marginR + 8, y + barH/2);
   });
+}
 
-  // Labels eixo X
-  ctx.fillStyle = '#888'; ctx.font = '10px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-  ctx.fillText('0%', zeroX, H-marginB+4);
-  ctx.fillText('-' + Math.round(maxAbs) + '%', marginL, H-marginB+4);
-  ctx.fillText('+' + Math.round(maxAbs) + '%', W-marginR, H-marginB+4);
+function askPdfName() {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999';
+  const pn = document.getElementById('diagPn').value || 'diagnostico';
+  const defaultName = 'Diagnostico_' + pn.replace(/\s+/g,'_');
+  overlay.innerHTML = '<div style="background:var(--card,var(--surface));border-radius:16px;padding:24px;max-width:360px;width:90%;text-align:center">' +
+    '<p style="margin:0 0 12px;font-size:15px;font-weight:600">Nome do arquivo PDF</p>' +
+    '<input id="pdfNameInput" type="text" value="' + defaultName + '" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);box-sizing:border-box">' +
+    '<div style="display:flex;gap:8px;justify-content:center;margin-top:16px">' +
+    '<button id="pdfGenBtn" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:10px 24px;cursor:pointer;font-size:14px">Gerar PDF</button>' +
+    '<button id="pdfCancelBtn" style="background:#888;color:#fff;border:none;border-radius:8px;padding:10px 24px;cursor:pointer;font-size:14px">Cancelar</button>' +
+    '</div></div>';
+  document.body.appendChild(overlay);
+  const inp = document.getElementById('pdfNameInput');
+  inp.focus(); inp.select();
+  document.getElementById('pdfCancelBtn').onclick = () => overlay.remove();
+  document.getElementById('pdfGenBtn').onclick = () => {
+    const name = inp.value.trim() || defaultName;
+    overlay.remove();
+    generatePdf(name);
+  };
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('pdfGenBtn').click(); } });
+}
+
+function generatePdf(fileName) {
+  const output = document.getElementById('diagOutput');
+  if (!output) return;
+
+  // Capturar dados da tabela
+  const rows = output.querySelectorAll('table tr');
+  const pn = document.getElementById('diagPn').value || '';
+  const canvas = document.getElementById('diagChart');
+
+  // Criar janela de impressão
+  const win = window.open('', '_blank');
+  if (!win) { toast('Permita pop-ups para gerar o PDF'); return; }
+
+  let tableHtml = '';
+  rows.forEach(r => { tableHtml += r.outerHTML; });
+
+  // Converter canvas para imagem
+  let chartImg = '';
+  if (canvas) {
+    try { chartImg = '<img src="' + canvas.toDataURL('image/png') + '" style="width:100%;max-width:600px;margin-top:16px">'; } catch(e) {}
+  }
+
+  const refText = output.querySelector('p[style*="text-sec"]');
+  const refInfo = refText ? refText.textContent : '';
+
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + fileName + '</title>' +
+    '<style>' +
+    'body{font-family:Arial,sans-serif;padding:24px;color:#1a1a1a;max-width:800px;margin:0 auto}' +
+    'h1{font-size:20px;color:#2c5f2d;margin-bottom:4px}' +
+    'h2{font-size:16px;color:#555;margin-top:0;font-weight:normal}' +
+    '.info{font-size:12px;color:#888;margin-bottom:12px}' +
+    'table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}' +
+    'th{background:#e8ece4;padding:8px;text-align:left;font-size:12px}' +
+    'td{padding:8px;border-bottom:1px solid #ddd}' +
+    '.footer{margin-top:24px;padding-top:12px;border-top:1px solid #ddd;font-size:10px;color:#aaa;text-align:center}' +
+    '@media print{body{padding:12px}button{display:none!important}}' +
+    '</style></head><body>' +
+    '<h1>Diagnóstico de Injetor</h1>' +
+    '<h2>Part Number: ' + pn + '</h2>' +
+    '<p class="info">' + refInfo + '</p>' +
+    '<table>' + tableHtml + '</table>' +
+    chartImg +
+    '<div class="footer">Agente Diesel — Gerado em ' + new Date().toLocaleString('pt-BR') + '</div>' +
+    '<div style="text-align:center;margin-top:16px"><button onclick="window.print()" style="background:#2c5f2d;color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:14px;cursor:pointer">Imprimir / Salvar PDF</button></div>' +
+    '</body></html>');
+  win.document.close();
 }
 
 init();
