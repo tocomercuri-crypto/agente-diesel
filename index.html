@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Agente Diesel — Bicos Common Rail Bosch</title>
+<!-- v93 -->
 <style>
   :root {
     --bg: #f5f5f0;
@@ -784,7 +785,7 @@ async function buscarInjetor() {
       if (d.indutancia) { setVal('indMin', d.indutancia.min); setVal('indIdeal', d.indutancia.ideal); setVal('indMax', d.indutancia.max); }
       else { setVal('indMin', d.indMin); setVal('indMax', d.indMax); }
       if (d.resistencia && typeof d.resistencia === 'object') { setVal('resMin', d.resistencia.min); setVal('resIdeal', d.resistencia.ideal); setVal('resMax', d.resistencia.max); }
-      setVal('resistencia', d.resistencia);
+      else if (typeof d.resistencia === 'string') { /* formato antigo texto, ignorar */ }
       if (d.dnh) { setVal('dnhMin', d.dnh.min); setVal('dnhIdeal', d.dnh.ideal); setVal('dnhMax', d.dnh.max); }
       if (d.rls) { setVal('rlsMin', d.rls.min); setVal('rlsIdeal', d.rls.ideal); setVal('rlsMax', d.rls.max); }
       if (d.dfk) { setVal('dfkMin', d.dfk.min); setVal('dfkIdeal', d.dfk.ideal); setVal('dfkMax', d.dfk.max); }
@@ -826,7 +827,7 @@ async function buscarInjetor() {
         // Preencher campos simples se vazios
         aprovados.forEach(a => {
           if (a.veiculo && !val('veiculo')) setVal('veiculo', a.veiculo);
-          if (a.resistencia && !val('resistencia')) setVal('resistencia', a.resistencia);
+
           if (a.ponteira && !val('ponteira')) setVal('ponteira', a.ponteira);
           if (a.valvula && !val('valvula')) setVal('valvula', a.valvula);
         });
@@ -843,18 +844,15 @@ async function buscarInjetor() {
           {key:'calcoRestritor', ids:['calRestMin','calRestIdeal','calRestMax']},
           {key:'molaBico', ids:['molaBicoMin','molaBicoIdeal','molaBicoMax']},
           {key:'molaBobina', ids:['molaBobinaMin','molaBobinaIdeal','molaBobinaMax']},
-          {key:'indutancia', ids:['indMin','indMin','indMax']}
+          {key:'indutancia', ids:['indMin','indIdeal','indMax']},
+          {key:'resistencia', ids:['resMin','resIdeal','resMax']}
         ];
         campos.forEach(c => {
           const vals = aprovados.map(a => a[c.key]).filter(v => v !== null && v !== undefined && v !== '');
           if (vals.length === 0) return;
           const nums = vals.map(v => Number(String(v).replace(',','.'))).filter(n => !isNaN(n));
           if (nums.length === 0) return;
-          if (c.key === 'indutancia') {
-            if (!numVal('indMin')) setVal('indMin', Math.min(...nums));
-            if (!numVal('indMax')) setVal('indMax', Math.max(...nums));
-            return;
-          }
+
           if (nums.length === 1) {
             // 1 teste: valor é o ideal
             setVal(c.ids[1], nums[0]);
@@ -872,7 +870,7 @@ async function buscarInjetor() {
         missing = [];
         if (!val('veiculo')) missing.push('Veículo');
         if (!numVal('indMin') && !numVal('indMax')) missing.push('Indutância');
-        if (!val('resistencia')) missing.push('Resistência');
+        if (!numVal('resMin') && !numVal('resMax')) missing.push('Resistência');
         if (!numVal('dnhIdeal')) missing.push('DNH');
         if (!numVal('rlsIdeal')) missing.push('RLS');
         if (!numVal('dfkIdeal')) missing.push('DFK');
