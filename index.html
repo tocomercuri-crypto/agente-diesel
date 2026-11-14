@@ -145,6 +145,14 @@
   }
   #sendBtn:hover { background:var(--primary-light); }
   #sendBtn:disabled { opacity:.5; cursor:not-allowed; }
+  #micBtn {
+    width:46px; height:46px; background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:12px; color:var(--text-sec); font-size:20px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all .15s;
+  }
+  #micBtn:hover { border-color:var(--primary); color:var(--primary); }
+  #micBtn.recording { background:#c00; color:#fff; border-color:#c00; animation:pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
   .err-msg {
     background:var(--err-bg); color:var(--err-fg); border:1px solid var(--err-border);
     padding:10px 14px; border-radius:10px; font-size:13px;
@@ -257,6 +265,7 @@
   </div>
   <div class="input-area">
     <textarea id="inp" rows="1" placeholder="Pergunte sobre bicos injetores..." onkeydown="hKey(event)" oninput="aResize(this)"></textarea>
+    <button id="micBtn" onclick="toggleMic()" title="Falar">🎤</button>
     <button id="sendBtn" onclick="send()">➤</button>
   </div>
 </div>
@@ -280,13 +289,18 @@
         <label for="anos">Anos</label>
         <input id="anos" type="text" placeholder="Ex: 2005 a 2011">
 
-        <div class="section-label">Parâmetros Elétricos</div>
+        <div class="section-label">Indutância (mH)</div>
         <div class="row">
-          <div><label for="indMin">Indut. Mín (mH)</label><input id="indMin" type="number" step="any" placeholder="190" readonly></div>
-          <div><label for="indMax">Indut. Máx (mH)</label><input id="indMax" type="number" step="any" placeholder="220" readonly></div>
+          <div><label>Indut. Mín</label><input id="indMin" type="number" step="any" readonly></div>
+          <div><label>Ideal</label><input id="indIdeal" type="number" step="any" readonly></div>
+          <div><label>Máx</label><input id="indMax" type="number" step="any" readonly></div>
         </div>
-        <label for="resistencia">Resistência Bobina (Ω)</label>
-        <input id="resistencia" type="text" placeholder="Ex: 0.3 a 0.5" readonly>
+        <div class="section-label">Resistência Bobina (Ω)</div>
+        <div class="row">
+          <div><label>Resist. Mín</label><input id="resMin" type="number" step="any" readonly></div>
+          <div><label>Ideal</label><input id="resIdeal" type="number" step="any" readonly></div>
+          <div><label>Máx</label><input id="resMax" type="number" step="any" readonly></div>
+        </div>
 
         <div class="section-label">Calços (Shims)</div>
         <div class="row">
@@ -340,6 +354,20 @@
           <div><label>Desatrac. Mín</label><input id="desatracMin" type="number" step="any" readonly></div>
           <div><label>Ideal</label><input id="desatracIdeal" type="number" step="any" readonly></div>
           <div><label>Máx</label><input id="desatracMax" type="number" step="any" readonly></div>
+        </div>
+
+        <div class="section-label">Fluxo da Ponteira (ml/min)</div>
+        <div class="row">
+          <div><label>Flx.Pont. Mín</label><input id="flxPontMin" type="number" step="any" readonly></div>
+          <div><label>Ideal</label><input id="flxPontIdeal" type="number" step="any" readonly></div>
+          <div><label>Máx</label><input id="flxPontMax" type="number" step="any" readonly></div>
+        </div>
+
+        <div class="section-label">Calço Restritor (mm)</div>
+        <div class="row">
+          <div><label>Cal.Rest. Mín</label><input id="calRestMin" type="number" step="any" readonly></div>
+          <div><label>Ideal</label><input id="calRestIdeal" type="number" step="any" readonly></div>
+          <div><label>Máx</label><input id="calRestMax" type="number" step="any" readonly></div>
         </div>
 
         <div class="section-label">Componentes</div>
@@ -407,6 +435,10 @@
           <div><label>Pré-injeção 1</label><input id="apPre" type="text" placeholder="ml/min"></div>
           <div><label>Pré-injeção 2</label><input id="apPre2" type="text" placeholder="ml/min"></div>
         </div>
+        <div class="row">
+          <div><label>Fluxo da ponteira</label><input id="apFluxoPonteira" type="text" placeholder="ml/min"></div>
+          <div><label>Calço restritor</label><input id="apCalcoRestritor" type="text" placeholder="mm"></div>
+        </div>
         <label for="apObs">Observações</label>
         <textarea id="apObs" placeholder="Notas do teste..."></textarea>
 
@@ -451,6 +483,10 @@
       <div class="row">
         <div><label>Indutância (mH)</label><input id="diagInd" type="text" inputmode="decimal"></div>
         <div><label>Resist. (Ω)</label><input id="diagRes" type="text" inputmode="decimal"></div>
+      </div>
+      <div class="row">
+        <div><label>Fluxo Ponteira (ml/min)</label><input id="diagFlxPont" type="text" inputmode="decimal"></div>
+        <div><label>Calço Restritor (mm)</label><input id="diagCalRest" type="text" inputmode="decimal"></div>
       </div>
       <div class="row">
         <div><label>Mola do Bico</label><input id="diagMolaBico" type="text" inputmode="decimal"></div>
@@ -550,7 +586,10 @@ async function loadDbData() {
         let p = ['Injetor ' + (d.partNumber || doc.id) + ':'];
         if (d.veiculo) p.push('  Veículo: ' + d.veiculo);
         if (d.anos) p.push('  Anos: ' + d.anos);
-        if (d.indMin || d.indMax) p.push('  Indutância: ' + (d.indMin||'?') + ' a ' + (d.indMax||'?') + ' mH');
+        if (d.indutancia) p.push('  Indutância: Mín=' + (d.indutancia.min||'?') + ' Ideal=' + (d.indutancia.ideal||'?') + ' Máx=' + (d.indutancia.max||'?') + ' mH');
+        else if (d.indMin || d.indMax) p.push('  Indutância: Mín=' + (d.indMin||'?') + ' Máx=' + (d.indMax||'?') + ' mH');
+        if (d.resistencia && typeof d.resistencia === 'object') p.push('  Resistência: Mín=' + (d.resistencia.min||'?') + ' Ideal=' + (d.resistencia.ideal||'?') + ' Máx=' + (d.resistencia.max||'?') + ' Ω');
+        else if (d.resistencia) p.push('  Resistência: ' + d.resistencia + ' Ω');
         if (d.resistencia) p.push('  Resistência bobina: ' + d.resistencia + ' Ω');
         if (d.ponteira) p.push('  Ponteira: ' + d.ponteira);
         if (d.valvula) p.push('  Válvula: ' + d.valvula);
@@ -564,6 +603,8 @@ async function loadDbData() {
         if (d.ah) p.push('  AH/Gap: Mín=' + (d.ah.min||'?') + ' Ideal=' + (d.ah.ideal||'?') + ' Máx=' + (d.ah.max||'?'));
         if (d.atracamento) p.push('  Atracamento: Mín=' + (d.atracamento.min||'?') + ' Ideal=' + (d.atracamento.ideal||'?') + ' Máx=' + (d.atracamento.max||'?') + ' A');
         if (d.desatracamento) p.push('  Desatracamento: Mín=' + (d.desatracamento.min||'?') + ' Ideal=' + (d.desatracamento.ideal||'?') + ' Máx=' + (d.desatracamento.max||'?') + ' A');
+        if (d.fluxoPonteira) p.push('  Fluxo Ponteira: Mín=' + (d.fluxoPonteira.min||'?') + ' Ideal=' + (d.fluxoPonteira.ideal||'?') + ' Máx=' + (d.fluxoPonteira.max||'?') + ' ml/min');
+        if (d.calcoRestritor) p.push('  Calço Restritor: Mín=' + (d.calcoRestritor.min||'?') + ' Ideal=' + (d.calcoRestritor.ideal||'?') + ' Máx=' + (d.calcoRestritor.max||'?') + ' mm');
         return p.join('\n');
       });
       dbData = '\n\nDADOS DO BANCO DE INJETORES CADASTRADOS:\n\n' + lines.join('\n\n');
@@ -597,6 +638,8 @@ async function loadDbData() {
         faixa('MFK','mfk'); faixa('AH','ah');
         faixa('Atracamento','atracamento',' A');
         faixa('Desatracamento','desatracamento',' A');
+        faixa('Fluxo Ponteira','fluxoPonteira',' ml/min');
+        faixa('Calço Restritor','calcoRestritor',' mm');
         faixa('Plena Carga','plenaCarga');
         faixa('Retorno','retorno');
         faixa('Carga Parcial','cargaParcial');
@@ -738,8 +781,9 @@ async function buscarInjetor() {
       const d = doc.data();
       setVal('veiculo', d.veiculo);
       setVal('anos', d.anos);
-      setVal('indMin', d.indMin);
-      setVal('indMax', d.indMax);
+      if (d.indutancia) { setVal('indMin', d.indutancia.min); setVal('indIdeal', d.indutancia.ideal); setVal('indMax', d.indutancia.max); }
+      else { setVal('indMin', d.indMin); setVal('indMax', d.indMax); }
+      if (d.resistencia && typeof d.resistencia === 'object') { setVal('resMin', d.resistencia.min); setVal('resIdeal', d.resistencia.ideal); setVal('resMax', d.resistencia.max); }
       setVal('resistencia', d.resistencia);
       if (d.dnh) { setVal('dnhMin', d.dnh.min); setVal('dnhIdeal', d.dnh.ideal); setVal('dnhMax', d.dnh.max); }
       if (d.rls) { setVal('rlsMin', d.rls.min); setVal('rlsIdeal', d.rls.ideal); setVal('rlsMax', d.rls.max); }
@@ -748,6 +792,8 @@ async function buscarInjetor() {
       if (d.ah) { setVal('ahMin', d.ah.min); setVal('ahIdeal', d.ah.ideal); setVal('ahMax', d.ah.max); }
       if (d.atracamento) { setVal('atracMin', d.atracamento.min); setVal('atracIdeal', d.atracamento.ideal); setVal('atracMax', d.atracamento.max); }
       if (d.desatracamento) { setVal('desatracMin', d.desatracamento.min); setVal('desatracIdeal', d.desatracamento.ideal); setVal('desatracMax', d.desatracamento.max); }
+      if (d.fluxoPonteira) { setVal('flxPontMin', d.fluxoPonteira.min); setVal('flxPontIdeal', d.fluxoPonteira.ideal); setVal('flxPontMax', d.fluxoPonteira.max); }
+      if (d.calcoRestritor) { setVal('calRestMin', d.calcoRestritor.min); setVal('calRestIdeal', d.calcoRestritor.ideal); setVal('calRestMax', d.calcoRestritor.max); }
       setVal('ponteira', d.ponteira);
       setVal('valvula', d.valvula);
       setVal('arruela', d.arruela);
@@ -756,7 +802,7 @@ async function buscarInjetor() {
       setVal('obs', d.obs);
       // Verificar campos faltantes
       if (!d.veiculo) missing.push('Veículo');
-      if (!d.indMin && !d.indMax) missing.push('Indutância');
+      if (!d.indutancia && !d.indMin && !d.indMax) missing.push('Indutância');
       if (!d.resistencia) missing.push('Resistência');
       if (!d.dnh) missing.push('DNH');
       if (!d.rls) missing.push('RLS');
@@ -793,6 +839,8 @@ async function buscarInjetor() {
           {key:'ah',  ids:['ahMin','ahIdeal','ahMax']},
           {key:'atracamento', ids:['atracMin','atracIdeal','atracMax']},
           {key:'desatracamento', ids:['desatracMin','desatracIdeal','desatracMax']},
+          {key:'fluxoPonteira', ids:['flxPontMin','flxPontIdeal','flxPontMax']},
+          {key:'calcoRestritor', ids:['calRestMin','calRestIdeal','calRestMax']},
           {key:'molaBico', ids:['molaBicoMin','molaBicoIdeal','molaBicoMax']},
           {key:'molaBobina', ids:['molaBobinaMin','molaBobinaIdeal','molaBobinaMax']},
           {key:'indutancia', ids:['indMin','indMin','indMax']}
@@ -809,21 +857,15 @@ async function buscarInjetor() {
           }
           if (nums.length === 1) {
             // 1 teste: valor é o ideal
-            if (!numVal(c.ids[1])) setVal(c.ids[1], nums[0]);
-          } else if (nums.length === 2) {
-            // 2 testes: menor = mín, maior = máx, ideal fica vazio
-            const mn = Math.min(...nums);
-            const mx = Math.max(...nums);
-            if (!numVal(c.ids[0])) setVal(c.ids[0], mn);
-            if (!numVal(c.ids[2])) setVal(c.ids[2], mx);
+            setVal(c.ids[1], nums[0]);
           } else {
-            // 3+ testes: menor = mín, maior = máx, média = ideal
+            // 2+ testes: menor = mín, maior = máx, média = ideal
             const mn = Math.min(...nums);
             const mx = Math.max(...nums);
             const avg = Math.round((nums.reduce((s,n)=>s+n,0) / nums.length) * 1000) / 1000;
-            if (!numVal(c.ids[0])) setVal(c.ids[0], mn);
-            if (!numVal(c.ids[1])) setVal(c.ids[1], avg);
-            if (!numVal(c.ids[2])) setVal(c.ids[2], mx);
+            setVal(c.ids[0], mn);
+            setVal(c.ids[1], avg);
+            setVal(c.ids[2], mx);
           }
         });
         // Recalcular missing
@@ -869,9 +911,8 @@ async function handleSubmit(e) {
     partNumber: pn,
     veiculo: val('veiculo'),
     anos: val('anos'),
-    indMin: numVal('indMin'),
-    indMax: numVal('indMax'),
-    resistencia: val('resistencia'),
+    indutancia: { min: numVal('indMin'), ideal: numVal('indIdeal'), max: numVal('indMax') },
+    resistencia: { min: numVal('resMin'), ideal: numVal('resIdeal'), max: numVal('resMax') },
     dnh: { min: numVal('dnhMin'), ideal: numVal('dnhIdeal'), max: numVal('dnhMax') },
     rls: { min: numVal('rlsMin'), ideal: numVal('rlsIdeal'), max: numVal('rlsMax') },
     dfk: { min: numVal('dfkMin'), ideal: numVal('dfkIdeal'), max: numVal('dfkMax') },
@@ -879,6 +920,8 @@ async function handleSubmit(e) {
     ah:  { min: numVal('ahMin'),  ideal: numVal('ahIdeal'),  max: numVal('ahMax') },
     atracamento: { min: numVal('atracMin'), ideal: numVal('atracIdeal'), max: numVal('atracMax') },
     desatracamento: { min: numVal('desatracMin'), ideal: numVal('desatracIdeal'), max: numVal('desatracMax') },
+    fluxoPonteira: { min: numVal('flxPontMin'), ideal: numVal('flxPontIdeal'), max: numVal('flxPontMax') },
+    calcoRestritor: { min: numVal('calRestMin'), ideal: numVal('calRestIdeal'), max: numVal('calRestMax') },
     ponteira: val('ponteira'),
     valvula: val('valvula'),
     arruela: val('arruela'),
@@ -925,10 +968,14 @@ async function loadHistory() {
       let det = [];
       if (d.veiculo) det.push('Veículo: ' + d.veiculo);
       if (d.anos) det.push('Anos: ' + d.anos);
-      if (d.indMin || d.indMax) det.push('Indutância: ' + (d.indMin||'?') + '–' + (d.indMax||'?') + ' mH');
+      if (d.indutancia) det.push('Indutância: ' + (d.indutancia.min||'?') + '–' + (d.indutancia.ideal||'?') + '–' + (d.indutancia.max||'?') + ' mH');
+      else if (d.indMin || d.indMax) det.push('Indutância: ' + (d.indMin||'?') + '–' + (d.indMax||'?') + ' mH');
+      if (d.resistencia && typeof d.resistencia === 'object') det.push('Resistência: ' + (d.resistencia.min||'?') + '–' + (d.resistencia.ideal||'?') + '–' + (d.resistencia.max||'?') + ' Ω');
       if (d.resistencia) det.push('Resist. bobina: ' + d.resistencia + ' Ω');
       if (d.atracamento) det.push('Atracamento: ' + (d.atracamento.min||'?') + '–' + (d.atracamento.ideal||'?') + '–' + (d.atracamento.max||'?') + ' A');
       if (d.desatracamento) det.push('Desatracamento: ' + (d.desatracamento.min||'?') + '–' + (d.desatracamento.ideal||'?') + '–' + (d.desatracamento.max||'?') + ' A');
+      if (d.fluxoPonteira) det.push('Fluxo Ponteira: ' + (d.fluxoPonteira.min||'?') + '–' + (d.fluxoPonteira.ideal||'?') + '–' + (d.fluxoPonteira.max||'?') + ' ml/min');
+      if (d.calcoRestritor) det.push('Calço Restritor: ' + (d.calcoRestritor.min||'?') + '–' + (d.calcoRestritor.ideal||'?') + '–' + (d.calcoRestritor.max||'?') + ' mm');
       if (d.ponteira) det.push('Ponteira: ' + d.ponteira);
       if (d.valvula) det.push('Válvula: ' + d.valvula);
       if (d.arruela) det.push('Arruela: ' + d.arruela + ' mm');
@@ -984,6 +1031,7 @@ async function editAprov(docId) {
     setV('apPlena', d.plenaCarga); setV('apRetorno', d.retorno);
     setV('apParcial', d.cargaParcial); setV('apMarcha', d.marchaLenta);
     setV('apPre', d.preInjecao); setV('apPre2', d.preInjecao2);
+    setV('apFluxoPonteira', d.fluxoPonteira); setV('apCalcoRestritor', d.calcoRestritor);
     setV('apMolaBico', d.molaBico); setV('apMolaBobina', d.molaBobina);
     setV('apObs', d.obs);
     editingAprovId = docId;
@@ -1027,6 +1075,8 @@ async function handleAprov(e) {
     marchaLenta: apVal('apMarcha'),
     preInjecao: apVal('apPre'),
     preInjecao2: apVal('apPre2'),
+    fluxoPonteira: apVal('apFluxoPonteira'),
+    calcoRestritor: apVal('apCalcoRestritor'),
     molaBico: apNum('apMolaBico'),
     molaBobina: apNum('apMolaBobina'),
     obs: apVal('apObs'),
@@ -1123,7 +1173,7 @@ async function loadAprovados() {
       if (calcos.length) det.push('Calços: ' + calcos.join(' | '));
       if (d.atracamento) det.push('Atrac: ' + d.atracamento + ' A');
       if (d.desatracamento) det.push('Desatrac: ' + d.desatracamento + ' A');
-      const res = [d.plenaCarga&&'Plena:'+d.plenaCarga, d.retorno&&'Ret:'+d.retorno, d.cargaParcial&&'Parcial:'+d.cargaParcial, d.marchaLenta&&'ML:'+d.marchaLenta, d.preInjecao&&'Pré1:'+d.preInjecao, d.preInjecao2&&'Pré2:'+d.preInjecao2].filter(Boolean);
+      const res = [d.plenaCarga&&'Plena:'+d.plenaCarga, d.retorno&&'Ret:'+d.retorno, d.cargaParcial&&'Parcial:'+d.cargaParcial, d.marchaLenta&&'ML:'+d.marchaLenta, d.preInjecao&&'Pré1:'+d.preInjecao, d.preInjecao2&&'Pré2:'+d.preInjecao2, d.fluxoPonteira&&'FlxPont:'+d.fluxoPonteira, d.calcoRestritor&&'CalçoRest:'+d.calcoRestritor].filter(Boolean);
       if (res.length) det.push(res.join(' | '));
       const dt = d.dataAprovacao ? new Date(d.dataAprovacao).toLocaleDateString('pt-BR') : '';
       const docId = doc.id;
@@ -1175,8 +1225,16 @@ async function runDiag() {
         if (desNums.length===1) ref.desatracamento={min:desNums[0],ideal:desNums[0],max:desNums[0]};
         else if (desNums.length===2) ref.desatracamento={min:Math.min(...desNums),max:Math.max(...desNums)};
         else if (desNums.length>=3) ref.desatracamento={min:Math.min(...desNums),ideal:Math.round((desNums.reduce((s,n)=>s+n,0)/desNums.length)*1000)/1000,max:Math.max(...desNums)};
-        const indNums = aprs.map(a=>a.indutancia).filter(v=>v!=null&&v!=='').map(Number).filter(n=>!isNaN(n));
-        if (indNums.length>0) { ref.indMin=Math.min(...indNums); ref.indMax=Math.max(...indNums); }
+        // Indutância e resistência como min/ideal/max
+        ['indutancia','resistencia','fluxoPonteira','calcoRestritor'].forEach(k => {
+          const nums = aprs.map(a=>a[k]).filter(v=>v!=null&&v!=='').map(v=>parseFloat(String(v).replace(',','.'))).filter(n=>!isNaN(n));
+          if (nums.length===1) ref[k]={min:nums[0],ideal:nums[0],max:nums[0]};
+          else if (nums.length===2) ref[k]={min:Math.min(...nums),max:Math.max(...nums)};
+          else if (nums.length>=3) {
+            const avg=Math.round((nums.reduce((s,n)=>s+n,0)/nums.length)*1000)/1000;
+            ref[k]={min:Math.min(...nums),ideal:avg,max:Math.max(...nums)};
+          }
+        });
         ['molaBico','molaBobina'].forEach(k => {
           const nums = aprs.map(a=>a[k]).filter(v=>v!=null&&v!=='').map(v=>parseFloat(String(v).replace(',','.'))).filter(n=>!isNaN(n));
           if (nums.length===1) ref[k]={min:nums[0],ideal:nums[0],max:nums[0]};
@@ -1226,21 +1284,14 @@ async function runDiag() {
   html += checkParam('AH/Gap', 'diagAh', ref.ah);
   html += checkParam('Atracamento', 'diagAtrac', ref.atracamento);
   html += checkParam('Desatracamento', 'diagDesatrac', ref.desatracamento);
-
-  // Indutância
-  const indAtual = parseFloat(document.getElementById('diagInd').value.replace(',','.'));
-  if (!isNaN(indAtual) && (ref.indMin || ref.indMax)) {
-    let st='', cl='';
-    if (ref.indMin && indAtual < ref.indMin) { st='✗ REPROVADO'; cl='#c00'; }
-    else if (ref.indMax && indAtual > ref.indMax) { st='✗ REPROVADO'; cl='#c00'; }
-    else { st='✓ APROVADO'; cl='#0a7'; }
-    html += '<tr><td style="padding:6px;font-weight:600">Indutância</td><td style="text-align:center">' + indAtual + ' mH</td>' +
-      '<td style="text-align:center;color:var(--text-sec)">' + (ref.indMin||'—') + '</td><td style="text-align:center">—</td>' +
-      '<td style="text-align:center;color:var(--text-sec)">' + (ref.indMax||'—') + '</td>' +
-      '<td style="text-align:center;font-weight:700;color:' + cl + '">' + st + '</td></tr>';
-  }
+  // Indutância e Resistência como min/ideal/max
+  const indRef = ref.indutancia || ((ref.indMin||ref.indMax)?{min:ref.indMin,max:ref.indMax}:null);
+  html += checkParam('Indutância', 'diagInd', indRef);
+  html += checkParam('Resistência', 'diagRes', typeof ref.resistencia === 'object' ? ref.resistencia : null);
 
   // Molas
+  html += checkParam('Fluxo Ponteira', 'diagFlxPont', ref.fluxoPonteira);
+  html += checkParam('Calço Restritor', 'diagCalRest', ref.calcoRestritor);
   html += checkParam('Mola do Bico', 'diagMolaBico', ref.molaBico);
   html += checkParam('Mola da Bobina', 'diagMolaBobina', ref.molaBobina);
 
@@ -1277,7 +1328,10 @@ function drawDiagChart(ref) {
     {name:'AH/Gap', id:'diagAh', ref:ref.ah},
     {name:'Atracamento', id:'diagAtrac', ref:ref.atracamento},
     {name:'Desatracamento', id:'diagDesatrac', ref:ref.desatracamento},
-    {name:'Indutância', id:'diagInd', ref:(ref.indMin||ref.indMax)?{min:ref.indMin,ideal:ref.indMin&&ref.indMax?((ref.indMin+ref.indMax)/2):null,max:ref.indMax}:null},
+    {name:'Indutância', id:'diagInd', ref:ref.indutancia||((ref.indMin||ref.indMax)?{min:ref.indMin,max:ref.indMax}:null)},
+    {name:'Resistência', id:'diagRes', ref:typeof ref.resistencia==='object'?ref.resistencia:null},
+    {name:'Flx.Ponteira', id:'diagFlxPont', ref:ref.fluxoPonteira},
+    {name:'Calço Rest.', id:'diagCalRest', ref:ref.calcoRestritor},
     {name:'Mola Bico', id:'diagMolaBico', ref:ref.molaBico},
     {name:'Mola Bobina', id:'diagMolaBobina', ref:ref.molaBobina}
   ];
@@ -1449,6 +1503,71 @@ function generatePdf(fileName) {
     '<div style="text-align:center;margin-top:16px"><button onclick="window.print()" style="background:#2c5f2d;color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:14px;cursor:pointer">Imprimir / Salvar PDF</button></div>' +
     '</body></html>');
   win.document.close();
+}
+
+// Reconhecimento de voz
+let recognition = null;
+let isRecording = false;
+
+async function toggleMic() {
+  const btn = document.getElementById('micBtn');
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) { toast('Seu navegador não suporta reconhecimento de voz'); return; }
+
+  if (isRecording && recognition) {
+    recognition.stop();
+    return;
+  }
+
+  // Solicitar permissão de microfone explicitamente
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach(t => t.stop());
+  } catch(err) {
+    toast('Permissão de microfone negada. Verifique as configurações do navegador.');
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.lang = 'pt-BR';
+  recognition.continuous = false;
+  recognition.interimResults = true;
+
+  recognition.onstart = () => {
+    isRecording = true;
+    btn.classList.add('recording');
+    btn.innerHTML = '⏹';
+  };
+
+  recognition.onresult = (e) => {
+    let transcript = '';
+    for (let i = 0; i < e.results.length; i++) {
+      transcript += e.results[i][0].transcript;
+    }
+    document.getElementById('inp').value = transcript;
+    aResize(document.getElementById('inp'));
+  };
+
+  recognition.onend = () => {
+    isRecording = false;
+    btn.classList.remove('recording');
+    btn.innerHTML = '🎤';
+    // Se tem texto, enviar automaticamente
+    const inp = document.getElementById('inp');
+    if (inp.value.trim()) {
+      send();
+    }
+  };
+
+  recognition.onerror = (e) => {
+    isRecording = false;
+    btn.classList.remove('recording');
+    btn.innerHTML = '🎤';
+    if (e.error === 'not-allowed') toast('Permita o acesso ao microfone');
+    else if (e.error !== 'aborted') toast('Erro no microfone: ' + e.error);
+  };
+
+  recognition.start();
 }
 
 init();
