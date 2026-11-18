@@ -227,8 +227,10 @@
   <button class="nav-tab active" onclick="switchPage('chat')">Chat</button>
   <button class="nav-tab" onclick="switchPage('cadastro')">Cadastrar</button>
   <button class="nav-tab" onclick="switchPage('lista')">Injetores</button>
-  <button class="nav-tab" onclick="switchPage('aprovados')">Aprovados</button>
   <button class="nav-tab" onclick="switchPage('diagnostico')">Diagnóstico</button>
+  <button class="nav-tab" onclick="switchPage('planos')">Planos</button>
+  <button class="nav-tab" onclick="switchPage('aprovados')">Aprovados</button>
+  <button class="nav-tab" onclick="switchPage('reprovados')">Reprovados</button>
 </div>
 
 <!-- CHAT PAGE -->
@@ -456,6 +458,138 @@
   </div>
 </div>
 
+<!-- REPROVADOS PAGE -->
+<div id="page-reprovados" class="page">
+  <div class="form-scroll">
+    <div class="card">
+      <h2>Registrar Injetor Reprovado</h2>
+      <div class="row">
+        <div><label>Part Number</label><input id="repPartNumber" type="text" placeholder="0445..." required></div>
+        <div><label>Nº de Série</label><input id="repSerie" type="text"></div>
+      </div>
+      <div class="row">
+        <div><label>Cliente</label><input id="repCliente" type="text"></div>
+        <div><label>Veículo</label><input id="repVeiculo" type="text"></div>
+      </div>
+      <div class="row">
+        <div><label>Bancada</label><input id="repBancada" type="text"></div>
+        <div></div>
+      </div>
+
+      <div class="section-label" style="background:#c62828;color:#fff;padding:8px 12px;border-radius:8px;margin-top:14px">🔴 VALORES ANTES (Reprovado)</div>
+      <div class="row">
+        <div><label>Indutância (mH)</label><input id="repAntInd" type="text" inputmode="decimal"></div>
+        <div><label>Resist. (Ω)</label><input id="repAntRes" type="text" inputmode="decimal"></div>
+      </div>
+      <div class="row">
+        <div><label>DNH</label><input id="repAntDnh" type="text" inputmode="decimal"></div>
+        <div><label>RLS</label><input id="repAntRls" type="text" inputmode="decimal"></div>
+        <div><label>DFK</label><input id="repAntDfk" type="text" inputmode="decimal"></div>
+      </div>
+      <div class="row">
+        <div><label>MFK</label><input id="repAntMfk" type="text" inputmode="decimal"></div>
+        <div><label>AH/Gap</label><input id="repAntAh" type="text" inputmode="decimal"></div>
+        <div><label>Atrac. (A)</label><input id="repAntAtrac" type="text" inputmode="decimal"></div>
+        <div><label>Desatrac. (A)</label><input id="repAntDesatrac" type="text" inputmode="decimal"></div>
+      </div>
+      <div class="row">
+        <div><label>Mola do Bico</label><input id="repAntMolaBico" type="text" inputmode="decimal"></div>
+        <div><label>Mola da Bobina</label><input id="repAntMolaBobina" type="text" inputmode="decimal"></div>
+      </div>
+      <div class="row">
+        <div><label>Plena Carga</label><input id="repAntPlena" type="text" inputmode="decimal"></div>
+        <div><label>Retorno</label><input id="repAntRetorno" type="text" inputmode="decimal"></div>
+      </div>
+      <div class="row">
+        <div><label>Carga Parcial</label><input id="repAntCargaParcial" type="text" inputmode="decimal"></div>
+        <div><label>Marcha Lenta</label><input id="repAntMarchaLenta" type="text" inputmode="decimal"></div>
+      </div>
+      <div class="row">
+        <div><label>Pré-injeção 1</label><input id="repAntPreInj1" type="text" inputmode="decimal"></div>
+        <div><label>Pré-injeção 2</label><input id="repAntPreInj2" type="text" inputmode="decimal"></div>
+      </div>
+      <div class="row">
+        <div><label>Fluxo Ponteira</label><input id="repAntFluxoPont" type="text" inputmode="decimal"></div>
+        <div><label>Calço Restritor</label><input id="repAntCalcoRest" type="text" inputmode="decimal"></div>
+      </div>
+
+      <div class="section-label" style="margin-top:14px">Defeito Encontrado</div>
+      <textarea id="repDefeito" rows="3" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px;font-size:14px;background:var(--surface);color:var(--text);resize:vertical" placeholder="Ex: Sem pré-injeção, retorno alto, vazamento..."></textarea>
+
+      <div class="section-label" style="margin-top:14px">O que foi feito para corrigir</div>
+      <textarea id="repCorrecao" rows="3" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px;font-size:14px;background:var(--surface);color:var(--text);resize:vertical" placeholder="Ex: Trocou calço MFK de 1.05 para 1.10, ajustou gap, trocou ponteira..."></textarea>
+
+      <div class="section-label" style="background:#2e7d32;color:#fff;padding:8px 12px;border-radius:8px;margin-top:14px">🟢 VALORES DEPOIS (Após correção)</div>
+      <div class="row">
+        <div><label>Indutância (mH)</label><input id="repDepInd" type="text" inputmode="decimal"></div>
+        <div><label>Resist. (Ω)</label><input id="repDepRes" type="text" inputmode="decimal"></div>
+      </div>
+      <div class="row">
+        <div><label>DNH</label><input id="repDepDnh" type="text" inputmode="decimal"></div>
+        <div><label>RLS</label><input id="repDepRls" type="text" inputmode="decimal"></div>
+        <div><label>DFK</label><input id="repDepDfk" type="text" inputmode="decimal"></div>
+      </div>
+      <div class="row">
+        <div><label>MFK</label><input id="repDepMfk" type="text" inputmode="decimal"></div>
+        <div><label>AH/Gap</label><input id="repDepAh" type="text" inputmode="decimal"></div>
+        <div><label>Atrac. (A)</label><input id="repDepAtrac" type="text" inputmode="decimal"></div>
+        <div><label>Desatrac. (A)</label><input id="repDepDesatrac" type="text" inputmode="decimal"></div>
+      </div>
+      <div class="row">
+        <div><label>Mola do Bico</label><input id="repDepMolaBico" type="text" inputmode="decimal"></div>
+        <div><label>Mola da Bobina</label><input id="repDepMolaBobina" type="text" inputmode="decimal"></div>
+      </div>
+      <div class="row">
+        <div><label>Plena Carga</label><input id="repDepPlena" type="text" inputmode="decimal"></div>
+        <div><label>Retorno</label><input id="repDepRetorno" type="text" inputmode="decimal"></div>
+      </div>
+      <div class="row">
+        <div><label>Carga Parcial</label><input id="repDepCargaParcial" type="text" inputmode="decimal"></div>
+        <div><label>Marcha Lenta</label><input id="repDepMarchaLenta" type="text" inputmode="decimal"></div>
+      </div>
+      <div class="row">
+        <div><label>Pré-injeção 1</label><input id="repDepPreInj1" type="text" inputmode="decimal"></div>
+        <div><label>Pré-injeção 2</label><input id="repDepPreInj2" type="text" inputmode="decimal"></div>
+      </div>
+      <div class="row">
+        <div><label>Fluxo Ponteira</label><input id="repDepFluxoPont" type="text" inputmode="decimal"></div>
+        <div><label>Calço Restritor</label><input id="repDepCalcoRest" type="text" inputmode="decimal"></div>
+      </div>
+
+      <div class="section-label" style="margin-top:14px">Resultado após correção</div>
+      <div class="row">
+        <div>
+          <select id="repResultado" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--surface);color:var(--text)">
+            <option value="corrigido">✅ Corrigido com sucesso</option>
+            <option value="parcial">⚠️ Correção parcial</option>
+            <option value="nao_corrigido">❌ Não corrigiu</option>
+            <option value="descartado">🗑️ Descartado</option>
+          </select>
+        </div>
+        <div></div>
+      </div>
+      <textarea id="repObsResultado" rows="2" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px;font-size:14px;background:var(--surface);color:var(--text);resize:vertical;margin-top:8px" placeholder="Observações do resultado..."></textarea>
+
+      <button onclick="saveReprovado()" style="margin-top:14px">Salvar Reprovado</button>
+    </div>
+    <div class="card">
+      <h2>Histórico de Reprovados</h2>
+      <div id="reprovadosList"><div class="empty-state">Nenhum reprovado cadastrado</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PLANOS DE TESTE PAGE -->
+<div id="page-planos" class="page">
+  <div class="form-scroll">
+    <div class="card">
+      <h2>Correlação de Planos de Teste</h2>
+      <p style="color:var(--text-sec);font-size:13px;margin-bottom:12px">Agrupa injetores aprovados por Part Number e compara os valores medidos</p>
+      <div id="planosContent"><div class="empty-state">Carregando...</div></div>
+    </div>
+  </div>
+</div>
+
 <!-- DIAGNOSTICO PAGE -->
 <div id="page-diagnostico" class="page">
   <div class="form-scroll">
@@ -529,6 +663,11 @@ SITUAÇÕES PRÁTICAS:
 - Marcha lenta baixa com DFK correto → verificar indutância da bobina.
 - Carga parcial baixa / redundância alta → verificar calço RLS.
 
+DICAS DE CORREÇÃO PARA OPERADOR — 0445120043:
+- Para conseguir Plena Carga e Carga Parcial: diminuir o calço DNH.
+- Se a marcha lenta estiver bem alta: aumentar o valor da mola do bico.
+- Se a pré-injeção estiver levemente alta: aumentar levemente a mola do bico resolve.
+
 INDUTÂNCIA:
 - Na montagem, a indutância não pode ser muito alta. Nunca acima de 300 mH — vale para válvula bastão original e pirata.
 
@@ -545,7 +684,11 @@ REGRAS:
 4. Priorize SEGURANÇA (Common Rail: 200 a 2500 bar).
 5. Seja DIRETO — sem dicas ou complementos não solicitados.
 6. SEMPRE consulte os DADOS DO BANCO abaixo antes de responder sobre um injetor específico.
-7. Se o injetor perguntado não estiver no banco, diga que não tem dados cadastrados para ele.`;
+7. Se o injetor perguntado não estiver no banco, diga que não tem dados cadastrados para ele.
+8. O VALOR IDEAL de qualquer parâmetro é SEMPRE a MÉDIA de todos os testes aprovados do mesmo part number. Quando perguntado sobre correlação, cálculo ideal, ou valor de referência, calcule a média dos testes aprovados e use como valor ideal.
+9. Nunca diga que não consegue calcular o valor ideal — a média dos testes aprovados É o valor ideal.
+10. Use o HISTÓRICO DE REPROVADOS para aprender padrões de defeito e correção. Quando perguntado sobre um problema em um injetor, consulte os reprovados do mesmo part number para sugerir a correção que já funcionou antes. Compare os valores ANTES e DEPOIS para explicar o que mudou e por quê.
+11. Quando um usuário descrever um problema, cruze com os reprovados cadastrados: se houver caso similar (mesmo defeito, mesmo part number), explique o que foi feito para corrigir e qual foi o resultado.`;
 
 let sample = null;
 let db = null;
@@ -652,6 +795,65 @@ async function loadDbData() {
         return p.join('\n');
       });
       dbData += '\n\nFAIXAS OBSERVADAS DOS INJETORES APROVADOS:\n\n' + aLines.join('\n\n');
+      // Correlação individual teste a teste
+      const cLines = Object.entries(grouped).filter(([,t])=>t.length>=2).map(([pn, testes]) => {
+        let p = ['CORRELAÇÃO DE TESTES DO INJETOR ' + pn + ' (' + testes.length + ' testes):'];
+        testes.forEach((t,i) => {
+          const nome = t.serie || t.cliente || ('Teste ' + (i+1));
+          p.push('  Teste ' + (i+1) + ' (' + nome + '):');
+          function v(label, key, unit) {
+            let val = t[key]; if (val==null||val==='') return;
+            p.push('    ' + label + ': ' + val + (unit||''));
+          }
+          v('Indutância','indutancia',' mH'); v('Resistência','resistencia',' Ω');
+          v('DNH','dnh'); v('RLS','rls'); v('DFK','dfk'); v('MFK','mfk'); v('AH','ah');
+          v('Atracamento','atracamento',' A'); v('Desatracamento','desatracamento',' A');
+          v('Fluxo Ponteira','fluxoPonteira',' ml/min'); v('Calço Restritor','calcoRestritor',' mm');
+          v('Plena Carga','plenaCarga'); v('Retorno','retorno');
+          v('Carga Parcial','cargaParcial'); v('Marcha Lenta','marchaLenta');
+          v('Pré-injeção 1','preInjecao'); v('Pré-injeção 2','preInjecao2');
+          v('Mola bico','molaBico'); v('Mola bobina','molaBobina');
+        });
+        // Somas e maiores
+        const keys = ['indutancia','resistencia','dnh','rls','dfk','mfk','ah','atracamento','desatracamento','fluxoPonteira','calcoRestritor','plenaCarga','retorno','cargaParcial','marchaLenta','preInjecao','preInjecao2','molaBico','molaBobina'];
+        const labels = ['Indutância','Resistência','DNH','RLS','DFK','MFK','AH','Atracamento','Desatracamento','Fluxo Ponteira','Calço Restritor','Plena Carga','Retorno','Carga Parcial','Marcha Lenta','Pré-injeção 1','Pré-injeção 2','Mola bico','Mola bobina'];
+        p.push('  Resumo comparativo:');
+        keys.forEach((k,idx) => {
+          const nums = testes.map((t,i)=>({i:i+1,v:parseFloat(String(t[k]||"").replace(',','.'))})).filter(x=>!isNaN(x.v));
+          if (nums.length<2) return;
+          const soma = Math.round(nums.reduce((s,x)=>s+x.v,0)*1000)/1000;
+          const media = Math.round((soma/nums.length)*1000)/1000;
+          const maior = nums.reduce((a,b)=>b.v>a.v?b:a);
+          const menor = nums.reduce((a,b)=>b.v<a.v?b:a);
+          p.push('    ' + labels[idx] + ': Soma=' + soma + ' Média=' + media + ' Maior=Teste' + maior.i + '(' + maior.v + ') Menor=Teste' + menor.i + '(' + menor.v + ')');
+        });
+        return p.join('\n');
+      });
+      if (cLines.length>0) dbData += '\n\nCORRELAÇÃO DETALHADA DOS PLANOS DE TESTE:\n\n' + cLines.join('\n\n');
+    }
+  } catch(e) {}
+  // Carregar reprovados para contexto do chat
+  try {
+    const snapR = await db.collection('reprovados').limit(200).get();
+    if (snapR.docs && snapR.docs.length > 0) {
+      const rLines = snapR.docs.map(doc => {
+        const d = doc.data();
+        let p = ['REPROVADO ' + (d.partNumber||'?') + (d.cliente?' — '+d.cliente:'') + (d.veiculo?' ('+d.veiculo+')':'') + ':'];
+        p.push('  Defeito: ' + (d.defeito||'-'));
+        function dumpVals(obj, label) {
+          if (!obj) return;
+          const fs = [['Ind',obj.indutancia,'mH'],['Res',obj.resistencia,'Ω'],['DNH',obj.dnh],['RLS',obj.rls],['DFK',obj.dfk],['MFK',obj.mfk],['AH',obj.ah],['Atrac',obj.atracamento,'A'],['Desatrac',obj.desatracamento,'A'],['MolaBico',obj.molaBico],['MolaBob',obj.molaBobina],['Plena',obj.plenaCarga],['Ret',obj.retorno],['CP',obj.cargaParcial],['ML',obj.marchaLenta],['PI1',obj.preInjecao],['PI2',obj.preInjecao2],['FlxPont',obj.fluxoPonteira],['CalçoRest',obj.calcoRestritor]].filter(f=>f[1]!=null&&f[1]!=='');
+          if (fs.length) p.push('  '+label+': ' + fs.map(f=>f[0]+'='+f[1]+(f[2]?' '+f[2]:'')).join(', '));
+        }
+        dumpVals(d.antes, 'ANTES');
+        p.push('  Correção aplicada: ' + (d.correcao||'-'));
+        dumpVals(d.depois, 'DEPOIS');
+        const resLabels = {corrigido:'Corrigido com sucesso',parcial:'Correção parcial',nao_corrigido:'Não corrigiu',descartado:'Descartado'};
+        p.push('  Resultado: ' + (resLabels[d.resultado]||d.resultado||'-'));
+        if (d.obsResultado) p.push('  Obs: ' + d.obsResultado);
+        return p.join('\n');
+      });
+      dbData += '\n\nHISTÓRICO DE INJETORES REPROVADOS E CORREÇÕES APLICADAS:\n\n' + rLines.join('\n\n');
     }
   } catch(e) {}
 }
@@ -663,6 +865,8 @@ function switchPage(name) {
   document.getElementById('page-' + name).classList.add('active');
   if (name === 'lista') loadHistory();
   if (name === 'aprovados') loadAprovados();
+  if (name === 'planos') loadPlanos();
+  if (name === 'reprovados') loadReprovados();
 }
 
 function toast(msg) {
@@ -1566,6 +1770,323 @@ async function toggleMic() {
   };
 
   recognition.start();
+}
+
+async function saveReprovado() {
+  if (!db) { toast('Banco não disponível'); return; }
+  const pn = val('repPartNumber');
+  const defeito = document.getElementById('repDefeito').value.trim();
+  const correcao = document.getElementById('repCorrecao').value.trim();
+  if (!pn) { toast('Informe o Part Number'); return; }
+  if (!defeito) { toast('Descreva o defeito encontrado'); return; }
+  if (!correcao) { toast('Descreva o que foi feito para corrigir'); return; }
+  const data = {
+    partNumber: pn, serie: val('repSerie'), cliente: val('repCliente'), veiculo: val('repVeiculo'), bancada: val('repBancada'),
+    defeito: defeito, correcao: correcao,
+    resultado: document.getElementById('repResultado').value,
+    obsResultado: document.getElementById('repObsResultado').value.trim() || null,
+    antes: {
+      indutancia: val('repAntInd'), resistencia: val('repAntRes'),
+      dnh: val('repAntDnh'), rls: val('repAntRls'), dfk: val('repAntDfk'), mfk: val('repAntMfk'), ah: val('repAntAh'),
+      atracamento: val('repAntAtrac'), desatracamento: val('repAntDesatrac'),
+      molaBico: val('repAntMolaBico'), molaBobina: val('repAntMolaBobina'),
+      plenaCarga: val('repAntPlena'), retorno: val('repAntRetorno'),
+      cargaParcial: val('repAntCargaParcial'), marchaLenta: val('repAntMarchaLenta'),
+      preInjecao: val('repAntPreInj1'), preInjecao2: val('repAntPreInj2'),
+      fluxoPonteira: val('repAntFluxoPont'), calcoRestritor: val('repAntCalcoRest')
+    },
+    depois: {
+      indutancia: val('repDepInd'), resistencia: val('repDepRes'),
+      dnh: val('repDepDnh'), rls: val('repDepRls'), dfk: val('repDepDfk'), mfk: val('repDepMfk'), ah: val('repDepAh'),
+      atracamento: val('repDepAtrac'), desatracamento: val('repDepDesatrac'),
+      molaBico: val('repDepMolaBico'), molaBobina: val('repDepMolaBobina'),
+      plenaCarga: val('repDepPlena'), retorno: val('repDepRetorno'),
+      cargaParcial: val('repDepCargaParcial'), marchaLenta: val('repDepMarchaLenta'),
+      preInjecao: val('repDepPreInj1'), preInjecao2: val('repDepPreInj2'),
+      fluxoPonteira: val('repDepFluxoPont'), calcoRestritor: val('repDepCalcoRest')
+    },
+    dataReprovacao: new Date().toISOString(),
+    status: 'reprovado'
+  };
+  const id = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  try {
+    await db.collection('reprovados').doc(id).set(data);
+    toast('Reprovado salvo!');
+    document.querySelectorAll('#page-reprovados input, #page-reprovados textarea').forEach(el=>el.value='');
+    document.getElementById('repResultado').value='corrigido';
+    loadReprovados();
+  } catch(e) { toast('Erro: ' + e.message); }
+}
+
+function printReprovado(canvasId) {
+      const card = document.getElementById(canvasId) ? document.getElementById(canvasId).closest('div[style*="border:1px"]') : null;
+      if (!card) return;
+      const win = window.open('','_blank','width=800,height=600');
+      if (!win) return;
+      const canvas = card.querySelector('canvas');
+      const chartImg = canvas ? '<img src="'+canvas.toDataURL()+'" style="width:100%;max-width:700px;margin:10px 0">' : '';
+      win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Relatório Reprovado</title><style>body{font-family:Arial,sans-serif;padding:20px;color:#1a1a1a}canvas{display:none}img{display:block}</style></head><body>');
+      let html = card.innerHTML.replace(/<canvas[^>]*>.*?<\/canvas>/gi, chartImg);
+      html = html.replace(/<div style="margin-top:8px;display:flex;gap:8px">.*?<\/div>/s, '');
+      win.document.write('<h2 style="text-align:center;color:#c62828">Relatório de Injetor Reprovado</h2>');
+      win.document.write(html);
+      win.document.write('<div style="margin-top:20px;font-size:11px;color:#666;text-align:center">Agente Diesel — Impresso em '+new Date().toLocaleString('pt-BR')+'</div>');
+      win.document.write('</body></html>');
+      win.document.close();
+      win.print();
+    }
+
+    function deleteReprovado(docId) {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999';
+      overlay.innerHTML = '<div style="background:var(--card,var(--surface));border-radius:16px;padding:24px;max-width:360px;width:90%;text-align:center">' +
+        '<div style="font-size:18px;font-weight:700;margin-bottom:12px">⚠️ Excluir Reprovado</div>' +
+        '<div style="font-size:14px;margin-bottom:16px;color:var(--text-sec)">Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.</div>' +
+        '<div style="display:flex;gap:8px"><button id="delRepN" style="flex:1;padding:10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:14px">Cancelar</button>' +
+        '<button id="delRepY" style="flex:1;padding:10px;border-radius:var(--radius);border:none;background:#c62828;color:#fff;cursor:pointer;font-size:14px;font-weight:600">Excluir</button></div></div>';
+      document.body.appendChild(overlay);
+      document.getElementById('delRepN').onclick = () => overlay.remove();
+      document.getElementById('delRepY').onclick = async () => {
+        overlay.remove();
+        try {
+          await db.collection('reprovados').doc(docId).delete();
+          loadReprovados();
+        } catch(e) { alert('Erro ao excluir: ' + e.message); }
+      };
+    }
+
+    async function loadReprovados() {
+  const container = document.getElementById('reprovadosList');
+  if (!db) { container.innerHTML = '<div class="empty-state">Banco não disponível</div>'; return; }
+  container.innerHTML = '<div class="empty-state">Carregando...</div>';
+  try {
+    const snap = await db.collection('reprovados').limit(200).get();
+    if (snap.empty) { container.innerHTML = '<div class="empty-state">Nenhum reprovado cadastrado</div>'; return; }
+    const docs = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.dataReprovacao||'').localeCompare(a.dataReprovacao||''));
+    const resLabels = {corrigido:'✅ Corrigido',parcial:'⚠️ Parcial',nao_corrigido:'❌ Não corrigiu',descartado:'🗑️ Descartado'};
+    function showVals(obj, label) {
+      if (!obj) return '';
+      const fields = [
+        ['Ind',obj.indutancia,'mH'],['Res',obj.resistencia,'Ω'],
+        ['DNH',obj.dnh],['RLS',obj.rls],['DFK',obj.dfk],['MFK',obj.mfk],['AH',obj.ah],
+        ['Atrac',obj.atracamento,'A'],['Desatrac',obj.desatracamento,'A'],
+        ['MolaBico',obj.molaBico],['MolaBob',obj.molaBobina],
+        ['Plena',obj.plenaCarga],['Ret',obj.retorno],['CP',obj.cargaParcial],['ML',obj.marchaLenta],
+        ['PI1',obj.preInjecao],['PI2',obj.preInjecao2],
+        ['FlxPont',obj.fluxoPonteira],['CalçoRest',obj.calcoRestritor]
+      ].filter(f=>f[1]!=null&&f[1]!=='').map(f=>f[0]+':'+f[1]+(f[2]?' '+f[2]:''));
+      if (!fields.length) return '';
+      return '<div style="margin-top:4px;font-size:12px;color:var(--text-sec)"><b>'+label+':</b> '+fields.join(' | ')+'</div>';
+    }
+    let chartIdx = 0;
+    container.innerHTML = docs.map(d => {
+      const cid = 'repChart' + (chartIdx++);
+      let h = '<div style="border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:14px;background:var(--surface-alt)">';
+      h += '<div style="font-weight:700;font-size:15px;color:#c62828">🔴 ' + (d.partNumber||'?');
+      if (d.serie) h += ' (Série: ' + d.serie + ')';
+      if (d.cliente) h += ' — ' + d.cliente;
+      if (d.veiculo) h += ' (' + d.veiculo + ')';
+      h += '</div>';
+      h += '<div style="margin-top:6px;font-size:13px"><b>Defeito:</b> ' + (d.defeito||'-') + '</div>';
+      // Gráfico comparativo
+      if (d.antes && d.depois) {
+        h += '<canvas id="' + cid + '" width="700" height="260" style="width:100%;max-width:700px;margin:10px 0;background:var(--surface);border-radius:8px"></canvas>';
+      }
+      h += showVals(d.antes, '🔴 Antes');
+      h += '<div style="margin-top:6px;font-size:13px"><b>Correção:</b> ' + (d.correcao||'-') + '</div>';
+      h += showVals(d.depois, '🟢 Depois');
+      h += '<div style="margin-top:6px;font-size:13px"><b>Resultado:</b> ' + (resLabels[d.resultado]||d.resultado||'-');
+      if (d.obsResultado) h += ' — ' + d.obsResultado;
+      h += '</div>';
+      if (d.dataReprovacao) h += '<div style="margin-top:4px;font-size:11px;color:var(--text-muted)">' + new Date(d.dataReprovacao).toLocaleDateString('pt-BR') + '</div>';
+      h += '<div style="margin-top:8px;display:flex;gap:8px">';
+      h += '<button onclick="printReprovado(\''+cid+'\')" style="flex:1;padding:6px 0;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);cursor:pointer;font-size:12px">🖨️ Imprimir</button>';
+      h += '<button onclick="deleteReprovado(\''+d.id+'\')" style="flex:1;padding:6px 0;border:1px solid #c62828;border-radius:var(--radius);background:transparent;color:#c62828;cursor:pointer;font-size:12px">🗑️ Excluir</button>';
+      h += '</div>';
+      h += '</div>';
+      return h;
+    }).join('');
+    // Desenhar gráficos
+    chartIdx = 0;
+    docs.forEach(d => {
+      const cid = 'repChart' + (chartIdx++);
+      if (!d.antes || !d.depois) return;
+      const canvas = document.getElementById(cid);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+      const fields = [
+        ['DNH','dnh'],['RLS','rls'],['DFK','dfk'],['MFK','mfk'],['AH','ah'],
+        ['Atrac','atracamento'],['Desatrac','desatracamento'],
+        ['MolaBico','molaBico'],['MolaBob','molaBobina'],
+        ['Plena','plenaCarga'],['Ret','retorno'],['CP','cargaParcial'],['ML','marchaLenta'],
+        ['PI1','preInjecao'],['PI2','preInjecao2'],['FlxPont','fluxoPonteira']
+      ];
+      const pairs = fields.map(([label,key]) => {
+        const a = parseFloat(String(d.antes[key]||'').replace(',','.'));
+        const b = parseFloat(String(d.depois[key]||'').replace(',','.'));
+        if (isNaN(a) && isNaN(b)) return null;
+        return {label, antes: isNaN(a)?0:a, depois: isNaN(b)?0:b};
+      }).filter(Boolean);
+      if (!pairs.length) return;
+      const isDark = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim().startsWith('#1');
+      const textColor = isDark ? '#e8e8e8' : '#1a1a1a';
+      const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)';
+      ctx.fillStyle = isDark ? '#1c1c1e' : '#ffffff';
+      ctx.fillRect(0, 0, W, H);
+      const margin = {top: 30, bottom: 50, left: 50, right: 20};
+      const plotW = W - margin.left - margin.right;
+      const plotH = H - margin.top - margin.bottom;
+      const n = pairs.length;
+      const groupW = plotW / n;
+      const barW = groupW * 0.35;
+      const maxVal = Math.max(...pairs.map(p=>Math.max(p.antes, p.depois))) * 1.15 || 1;
+      // Título
+      ctx.fillStyle = textColor;
+      ctx.font = 'bold 13px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Comparação ANTES × DEPOIS', W/2, 18);
+      // Grid
+      ctx.strokeStyle = gridColor;
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i <= 4; i++) {
+        const y = margin.top + plotH - (plotH * i / 4);
+        ctx.beginPath(); ctx.moveTo(margin.left, y); ctx.lineTo(W - margin.right, y); ctx.stroke();
+        ctx.fillStyle = textColor; ctx.font = '10px Arial'; ctx.textAlign = 'right';
+        ctx.fillText((maxVal * i / 4).toFixed(1), margin.left - 4, y + 3);
+      }
+      // Barras
+      pairs.forEach((p, i) => {
+        const x = margin.left + i * groupW + groupW * 0.08;
+        const hA = (p.antes / maxVal) * plotH;
+        const hB = (p.depois / maxVal) * plotH;
+        const yA = margin.top + plotH - hA;
+        const yB = margin.top + plotH - hB;
+        // Barra ANTES (vermelho)
+        ctx.fillStyle = '#e53935';
+        ctx.fillRect(x, yA, barW, hA);
+        // Barra DEPOIS (verde)
+        ctx.fillStyle = '#43a047';
+        ctx.fillRect(x + barW + 2, yB, barW, hB);
+        // Valores em cima das barras
+        ctx.fillStyle = textColor; ctx.font = '9px Arial'; ctx.textAlign = 'center';
+        if (p.antes) ctx.fillText(p.antes.toString(), x + barW/2, yA - 3);
+        if (p.depois) ctx.fillText(p.depois.toString(), x + barW + 2 + barW/2, yB - 3);
+        // Seta de diferença
+        const diff = p.depois - p.antes;
+        if (diff !== 0) {
+          const arrow = diff > 0 ? '↑' : '↓';
+          const diffColor = diff > 0 ? '#43a047' : '#e53935';
+          ctx.fillStyle = diffColor; ctx.font = 'bold 9px Arial';
+          ctx.fillText(arrow + Math.abs(Math.round(diff*1000)/1000), x + groupW*0.35, margin.top + plotH + 12);
+        }
+        // Label
+        ctx.fillStyle = textColor; ctx.font = '10px Arial'; ctx.textAlign = 'center';
+        ctx.save();
+        ctx.translate(x + groupW*0.35, margin.top + plotH + 26);
+        ctx.rotate(-0.4);
+        ctx.fillText(p.label, 0, 0);
+        ctx.restore();
+      });
+      // Legenda
+      ctx.fillStyle = '#e53935'; ctx.fillRect(W - 140, 8, 12, 12);
+      ctx.fillStyle = textColor; ctx.font = '11px Arial'; ctx.textAlign = 'left';
+      ctx.fillText('Antes', W - 124, 18);
+      ctx.fillStyle = '#43a047'; ctx.fillRect(W - 76, 8, 12, 12);
+      ctx.fillStyle = textColor; ctx.fillText('Depois', W - 60, 18);
+    });
+  } catch(e) { container.innerHTML = '<div class="empty-state">Erro: ' + e.message + '</div>'; }
+}
+
+async function loadPlanos() {
+  const container = document.getElementById('planosContent');
+  if (!db) { container.innerHTML = '<div class="empty-state">Banco não disponível</div>'; return; }
+  container.innerHTML = '<div class="empty-state">Carregando...</div>';
+  try {
+    const snap = await db.collection('aprovados').limit(500).get();
+    if (snap.empty) { container.innerHTML = '<div class="empty-state">Nenhum aprovado cadastrado</div>'; return; }
+    // Agrupar por part number
+    const grupos = {};
+    snap.docs.forEach(doc => {
+      const d = doc.data();
+      const pn = (d.partNumber||'').replace(/[^0-9]/g,'');
+      if (!pn) return;
+      if (!grupos[pn]) grupos[pn] = [];
+      grupos[pn].push({id: doc.id, ...d});
+    });
+    const params = [
+      {key:'indutancia', label:'Indutância (mH)'},
+      {key:'resistencia', label:'Resistência (Ω)'},
+      {key:'dnh', label:'DNH'},
+      {key:'rls', label:'RLS'},
+      {key:'dfk', label:'DFK'},
+      {key:'mfk', label:'MFK'},
+      {key:'ah', label:'AH/Gap'},
+      {key:'atracamento', label:'Atracamento (A)'},
+      {key:'desatracamento', label:'Desatracamento (A)'},
+      {key:'plenaCarga', label:'Plena Carga'},
+      {key:'retorno', label:'Retorno'},
+      {key:'cargaParcial', label:'Carga Parcial'},
+      {key:'marchaLenta', label:'Marcha Lenta'},
+      {key:'preInjecao', label:'Pré-injeção 1'},
+      {key:'preInjecao2', label:'Pré-injeção 2'},
+      {key:'fluxoPonteira', label:'Fluxo Ponteira'},
+      {key:'calcoRestritor', label:'Calço Restritor'},
+      {key:'molaBico', label:'Mola Bico'},
+      {key:'molaBobina', label:'Mola Bobina'}
+    ];
+    let html = '';
+    const pns = Object.keys(grupos).sort();
+    pns.forEach(pn => {
+      const testes = grupos[pn];
+      html += '<div style="margin-bottom:24px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">';
+      html += '<div style="background:var(--primary);color:#fff;padding:10px 14px;font-weight:700;font-size:15px">';
+      html += '🔧 ' + pn + ' — ' + testes.length + ' teste(s)';
+      if (testes[0].veiculo) html += ' — ' + testes[0].veiculo;
+      html += '</div>';
+      html += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">';
+      // Cabeçalho
+      html += '<tr style="background:var(--surface-alt)"><th style="padding:6px 10px;text-align:left;white-space:nowrap">Parâmetro</th>';
+      testes.forEach((t,i) => {
+        const nome = t.serie || t.cliente || ('Teste ' + (i+1));
+        html += '<th style="padding:6px 10px;text-align:center;white-space:nowrap">' + nome + '</th>';
+      });
+      if (testes.length >= 2) html += '<th style="padding:6px 10px;text-align:center;color:var(--primary);white-space:nowrap">Mín</th><th style="padding:6px 10px;text-align:center;color:var(--primary);white-space:nowrap">Ideal</th><th style="padding:6px 10px;text-align:center;color:var(--primary);white-space:nowrap">Máx</th>';
+      html += '</tr>';
+      // Linhas por parâmetro
+      params.forEach((p, idx) => {
+        const bg = idx % 2 === 0 ? 'var(--surface)' : 'var(--surface-alt)';
+        const vals = testes.map(t => {
+          let v = t[p.key];
+          if (v === null || v === undefined || v === '') return null;
+          return parseFloat(String(v).replace(',','.'));
+        });
+        const hasData = vals.some(v => v !== null && !isNaN(v));
+        if (!hasData) return;
+        html += '<tr style="background:' + bg + '"><td style="padding:6px 10px;font-weight:600;white-space:nowrap">' + p.label + '</td>';
+        const validNums = vals.filter(v => v !== null && !isNaN(v));
+        const mn = validNums.length ? Math.min(...validNums) : null;
+        const mx = validNums.length ? Math.max(...validNums) : null;
+        const avg = validNums.length ? Math.round((validNums.reduce((s,n)=>s+n,0)/validNums.length)*1000)/1000 : null;
+        vals.forEach(v => {
+          let cl = '';
+          if (v !== null && !isNaN(v) && validNums.length >= 2) {
+            if (v === mn) cl = 'color:#1976d2;font-weight:700';
+            else if (v === mx) cl = 'color:#c62828;font-weight:700';
+          }
+          html += '<td style="padding:6px 10px;text-align:center;' + cl + '">' + (v !== null && !isNaN(v) ? v : '—') + '</td>';
+        });
+        if (testes.length >= 2) {
+          html += '<td style="padding:6px 10px;text-align:center;font-weight:700;color:#1976d2">' + (mn !== null ? mn : '—') + '</td>';
+          html += '<td style="padding:6px 10px;text-align:center;font-weight:700;color:var(--primary)">' + (avg !== null ? avg : '—') + '</td>';
+          html += '<td style="padding:6px 10px;text-align:center;font-weight:700;color:#c62828">' + (mx !== null ? mx : '—') + '</td>';
+        }
+        html += '</tr>';
+      });
+      html += '</table></div></div>';
+    });
+    container.innerHTML = html;
+  } catch(e) { container.innerHTML = '<div class="empty-state">Erro: ' + e.message + '</div>'; }
 }
 
 init();
