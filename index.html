@@ -585,6 +585,7 @@
     <div class="card">
       <h2>Correlação de Planos de Teste</h2>
       <p style="color:var(--text-sec);font-size:13px;margin-bottom:12px">Agrupa injetores aprovados por Part Number e compara os valores medidos</p>
+      <button onclick="showPrintPlanoChooser()" style="background:var(--primary);color:#fff;border:none;padding:8px 18px;border-radius:var(--radius);cursor:pointer;font-size:14px;margin-bottom:12px">🖨️ Imprimir Plano</button>
       <div id="planosContent"><div class="empty-state">Carregando...</div></div>
     </div>
   </div>
@@ -719,6 +720,24 @@ async function init() {
   await loadDbData();
   await loadHistory();
 }
+
+// Enter avança para o próximo campo em vez de submeter
+function nextField(e) {
+  if (e.key !== 'Enter') return;
+  if (e.target.tagName === 'TEXTAREA') return;
+  e.preventDefault();
+  e.stopPropagation();
+  const page = e.target.closest('.page') || e.target.closest('form');
+  if (!page) return;
+  const inputs = Array.from(page.querySelectorAll('input:not([type="hidden"]),select'));
+  const idx = inputs.indexOf(e.target);
+  if (idx >= 0 && idx < inputs.length - 1) inputs[idx + 1].focus();
+  return false;
+}
+document.querySelectorAll('input, select').forEach(el => {
+  if (el.closest('#page-chat') || el.type === 'hidden') return;
+  el.setAttribute('onkeydown', 'return nextField(event)');
+});
 
 async function loadDbData() {
   if (!db) return;
@@ -1141,16 +1160,22 @@ async function handleSubmit(e) {
   });
 
   try {
-    const docId = pn.replace(/[\s\.]/g, '_');
-    await db.collection("injetores").doc(docId).set(data);
-    toast('✓ Injetor ' + pn + ' salvo!');
+    const docId = editingInjetorId || pn.replace(/[\s\.]/g, '_');
+    if (editingInjetorId) {
+      await db.collection("injetores").doc(docId).update(data);
+      toast('✓ Injetor ' + pn + ' atualizado!');
+      editingInjetorId = null;
+    } else {
+      await db.collection("injetores").doc(docId).set(data);
+      toast('✓ Injetor ' + pn + ' salvo!');
+    }
     document.getElementById('frm').reset();
     await loadDbData();
     await loadHistory();
   } catch(err) {
     toast('Erro: ' + (err.message || err.code || 'desconhecido'));
   }
-  btn.disabled = false; btn.textContent = 'Salvar Injetor';
+  btn.disabled = false; btn.textContent = editingInjetorId ? 'Atualizar Injetor' : 'Salvar Injetor';
 }
 
 async function loadHistory() {
@@ -1163,7 +1188,8 @@ async function loadHistory() {
       return;
     }
     list.innerHTML = '';
-    snap.docs.forEach(doc => {
+    const sortedInj = snap.docs.slice().sort((a,b) => (b.data().dataAprovacao||'').localeCompare(a.data().dataAprovacao||''));
+    sortedInj.forEach(doc => {
       const d = doc.data();
       const div = document.createElement('div');
       div.className = 'history-item';
@@ -1185,13 +1211,57 @@ async function loadHistory() {
       if (d.molaBobina) det.push('Mola bobina: ' + (typeof d.molaBobina === 'object' ? (d.molaBobina.min||'?') + '–' + (d.molaBobina.ideal||'?') + '–' + (d.molaBobina.max||'?') : d.molaBobina));
       const docId = doc.id;
       div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center"><div class="pn">' + (d.partNumber||docId) + '</div>' +
-        '<button onclick="deleteInjetor(\'' + docId + '\')" style="background:#c00;color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;white-space:nowrap">Apagar</button></div>' +
+        '<div style="display:flex;gap:4px"><button onclick="editInjetor(\'' + docId + '\')" style="background:#0a7;color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;white-space:nowrap">Editar</button>' +
+        '<button onclick="deleteInjetor(\'' + docId + '\')" style="background:#c00;color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;white-space:nowrap">Apagar</button></div></div>' +
         (det.length ? '<div class="detail">' + det.join('<br>') + '</div>' : '');
       list.appendChild(div);
     });
   } catch(e) {
     list.innerHTML = '<div class="empty-state">Erro ao carregar: ' + (e.message||e.code||'desconhecido') + '</div>';
   }
+}
+
+let editingInjetorId = null;
+
+async function editInjetor(docId) {
+  if (!db) return;
+  try {
+    const snap = await db.collection('injetores').limit(200).get();
+    const doc = snap.docs.find(d => d.id === docId);
+    if (!doc) { toast('Registro não encontrado'); return; }
+    const d = doc.data();
+    editingInjetorId = docId;
+    switchPage('cadastro');
+    document.getElementById('pn').value = d.partNumber || '';
+    document.getElementById('veiculo').value = d.veiculo || '';
+    document.getElementById('anos').value = d.anos || '';
+    const setRange = (prefix, obj) => {
+      if (!obj || typeof obj !== 'object') return;
+      const el = (s) => document.getElementById(s);
+      if (el(prefix+'Min')) el(prefix+'Min').value = obj.min ?? '';
+      if (el(prefix+'Ideal')) el(prefix+'Ideal').value = obj.ideal ?? '';
+      if (el(prefix+'Max')) el(prefix+'Max').value = obj.max ?? '';
+    };
+    setRange('ind', d.indutancia);
+    setRange('res', d.resistencia);
+    setRange('dnh', d.dnh);
+    setRange('rls', d.rls);
+    setRange('dfk', d.dfk);
+    setRange('mfk', d.mfk);
+    setRange('ah', d.ah);
+    setRange('atrac', d.atracamento);
+    setRange('desatrac', d.desatracamento);
+    setRange('flxPont', d.fluxoPonteira);
+    setRange('calRest', d.calcoRestritor);
+    setRange('molaBico', d.molaBico);
+    setRange('molaBobina', d.molaBobina);
+    document.getElementById('ponteira').value = d.ponteira || '';
+    document.getElementById('valvula').value = d.valvula || '';
+    document.getElementById('arruela').value = d.arruela || '';
+    if (document.getElementById('obs')) document.getElementById('obs').value = d.obs || '';
+    document.getElementById('btnSubmit').textContent = 'Atualizar Injetor';
+    toast('Editando ' + (d.partNumber||docId));
+  } catch(e) { toast('Erro: ' + e.message); }
 }
 
 async function deleteInjetor(docId) {
@@ -1361,7 +1431,8 @@ async function loadAprovados() {
       return;
     }
     list.innerHTML = '';
-    snap.docs.forEach(doc => {
+    const sortedAprov = snap.docs.slice().sort((a,b) => (b.data().dataAprovacao||'').localeCompare(a.data().dataAprovacao||''));
+    sortedAprov.forEach(doc => {
       const d = doc.data();
       const div = document.createElement('div');
       div.className = 'history-item';
@@ -2087,6 +2158,67 @@ async function loadPlanos() {
     });
     container.innerHTML = html;
   } catch(e) { container.innerHTML = '<div class="empty-state">Erro: ' + e.message + '</div>'; }
+}
+
+async function showPrintPlanoChooser(){
+  const snap=await db.collection('aprovados').limit(500).get();
+  const grupos={};
+  snap.docs.forEach(doc=>{const d=doc.data();const pn=d.partNumber||doc.id;if(!grupos[pn])grupos[pn]=[];grupos[pn].push(d)});
+  const pns=Object.keys(grupos).sort();
+  if(!pns.length){alert('Nenhum plano disponível.');return}
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:9999';
+  let h='<div style="background:var(--surface);border-radius:var(--radius);padding:20px;max-width:400px;width:90%;max-height:80vh;overflow-y:auto">';
+  h+='<h3 style="margin:0 0 12px">Escolha o Plano para Imprimir</h3>';
+  pns.forEach(pn=>{
+    h+='<button onclick="printPlano(\''+pn.replace(/'/g,"\\'")+'\');this.closest(\'div[style*=fixed]\').remove()" style="display:block;width:100%;text-align:left;padding:10px 14px;margin-bottom:6px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface-alt);cursor:pointer;font-size:14px">🔧 '+pn+' ('+grupos[pn].length+' teste'+(grupos[pn].length>1?'s':'')+')</button>';
+  });
+  h+='<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="display:block;width:100%;padding:10px;margin-top:8px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);cursor:pointer">Cancelar</button>';
+  h+='</div>';
+  ov.innerHTML=h;
+  document.body.appendChild(ov);
+}
+
+async function printPlano(pn){
+  const snap=await db.collection('aprovados').limit(500).get();
+  const testes=snap.docs.filter(d=>(d.data().partNumber||d.id)===pn).map(d=>d.data());
+  if(!testes.length)return;
+  const params=[
+    {key:'indutancia',label:'Indutância (mH)'},{key:'resistencia',label:'Resistência (Ω)'},
+    {key:'dnh',label:'DNH'},{key:'rls',label:'RLS'},{key:'dfk',label:'DFK'},
+    {key:'mfk',label:'MFK'},{key:'ah',label:'AH/Gap'},
+    {key:'atracamento',label:'Atracamento (A)'},{key:'desatracamento',label:'Desatracamento (A)'},
+    {key:'plenaCarga',label:'Plena Carga'},{key:'retorno',label:'Retorno'},
+    {key:'cargaParcial',label:'Carga Parcial'},{key:'marchaLenta',label:'Marcha Lenta'},
+    {key:'preInjecao',label:'Pré-injeção 1'},{key:'preInjecao2',label:'Pré-injeção 2'},
+    {key:'fluxoPonteira',label:'Fluxo Ponteira'},{key:'calcoRestritor',label:'Calço Restritor'},
+    {key:'molaBico',label:'Mola Bico'},{key:'molaBobina',label:'Mola Bobina'}
+  ];
+  let tb='<tr style="background:#eee"><th style="padding:6px 10px;text-align:left">Parâmetro</th>';
+  testes.forEach((t,i)=>{tb+='<th style="padding:6px 10px;text-align:center">'+(t.serie||t.cliente||('Teste '+(i+1)))+'</th>'});
+  if(testes.length>=2)tb+='<th style="padding:6px 10px;text-align:center;color:#1565c0">Mín</th><th style="padding:6px 10px;text-align:center;color:#2e7d32">Ideal</th><th style="padding:6px 10px;text-align:center;color:#c62828">Máx</th>';
+  tb+='</tr>';
+  params.forEach((p,idx)=>{
+    const vals=testes.map(t=>{let v=t[p.key];if(v===null||v===undefined||v==='')return null;return parseFloat(String(v).replace(',','.'))});
+    if(!vals.some(v=>v!==null&&!isNaN(v)))return;
+    const bg=idx%2===0?'#fff':'#f5f5f5';
+    const vn=vals.filter(v=>v!==null&&!isNaN(v));
+    const mn=vn.length?Math.min(...vn):null,mx=vn.length?Math.max(...vn):null,avg=vn.length?Math.round((vn.reduce((s,n)=>s+n,0)/vn.length)*1000)/1000:null;
+    tb+='<tr style="background:'+bg+'"><td style="padding:6px 10px;font-weight:600">'+p.label+'</td>';
+    vals.forEach(v=>{let cl='';if(v!==null&&!isNaN(v)&&vn.length>=2){if(v===mn)cl='color:#1565c0;font-weight:700';else if(v===mx)cl='color:#c62828;font-weight:700'}tb+='<td style="padding:6px 10px;text-align:center;'+cl+'">'+(v!==null&&!isNaN(v)?v:'—')+'</td>'});
+    if(testes.length>=2){tb+='<td style="padding:6px 10px;text-align:center;font-weight:700;color:#1565c0">'+(mn!==null?mn:'—')+'</td>';tb+='<td style="padding:6px 10px;text-align:center;font-weight:700;color:#2e7d32">'+(avg!==null?avg:'—')+'</td>';tb+='<td style="padding:6px 10px;text-align:center;font-weight:700;color:#c62828">'+(mx!==null?mx:'—')+'</td>'}
+    tb+='</tr>';
+  });
+  const veiculo=testes[0].veiculo?' — '+testes[0].veiculo:'';
+  const win=window.open('','_blank','width=900,height=700');
+  if(!win)return;
+  win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Plano de Teste - '+pn+'</title><style>body{font-family:Arial,sans-serif;padding:20px;color:#222}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc}h2{margin:0 0 4px}@media print{button{display:none!important}}</style></head><body>');
+  win.document.write('<h2>🔧 Plano de Teste: '+pn+veiculo+'</h2>');
+  win.document.write('<p style="color:#666;font-size:13px;margin-bottom:12px">'+testes.length+' teste(s) — Impresso em '+new Date().toLocaleDateString('pt-BR')+'</p>');
+  win.document.write('<table>'+tb+'</table>');
+  win.document.write('<br><button onclick="window.print()" style="padding:8px 20px;font-size:14px;cursor:pointer">🖨️ Imprimir</button>');
+  win.document.write('</body></html>');
+  win.document.close();
 }
 
 init();
